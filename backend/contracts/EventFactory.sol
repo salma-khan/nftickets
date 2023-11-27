@@ -5,14 +5,14 @@ import "./EventTickets.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 
 contract EventFactory {
-    event EventCreated(address nfTicketsAddress);
+    event EventCreated(address ticketAddress);
 
-    function deploy(
+    function create(
         string calldata eventName,
         string calldata eventSymbol, uint256 date
-    ) external {
+    ) external   {
         bytes32 _salt = keccak256(abi.encodePacked(eventName));
-        address addr = Create2.deploy(
+        address addr =  Create2.deploy(
             0,
             _salt,
             abi.encodePacked(
@@ -20,7 +20,9 @@ contract EventFactory {
                 abi.encode(eventName, eventSymbol, date)
             )
         );
-        EventTickets(addr).transferOwnership(msg.sender);
+        
+       EventTickets(addr).transferOwnership(msg.sender);
         emit EventCreated(addr);
+      
     }
 }

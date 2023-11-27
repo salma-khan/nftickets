@@ -13,6 +13,7 @@ async function main() {
   const eventFactory = await EventFactory.deploy();
   await eventFactory.waitForDeployment();
   console.log("Contract deployed to address:", eventFactory.target);
+  
 }
 
 // We recommend this pattern to be able to use async/await everywhere
