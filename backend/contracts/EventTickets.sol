@@ -7,6 +7,7 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract EventTickets is ERC721URIStorage, Ownable {
     using Strings for uint256;
+    
     event SellingStarted();
     event emitInSecondMarket(uint256);
 
@@ -20,13 +21,19 @@ contract EventTickets is ERC721URIStorage, Ownable {
         uint32 thresholdResalePrice;
     }
 
+
+    struct TokenForResale{
+        bool forSale;
+        uint32 price;
+    }
+
     uint256 eventDate;
 
     mapping(string => mapping(uint32 => bool)) mintedSeat;
 
     mapping(uint256 => uint8) tokenIdsPerCategories;
 
-    mapping(uint256 => uint32) public secondMarketTokenIdsByPrice;
+    mapping(uint256 => TokenForResale) public secondMarketToken;
 
     Category[] eventCategories;
 
@@ -60,6 +67,7 @@ contract EventTickets is ERC721URIStorage, Ownable {
         emit SellingStarted();
     }
 
+
     function buy(
         uint32 _seat,
         string calldata _category,
@@ -92,15 +100,28 @@ contract EventTickets is ERC721URIStorage, Ownable {
     function sell(uint256 tokenId, uint32 price) external {
         require(msg.sender == ownerOf(tokenId), "Not owner.");
         require(
-            price <=
+            price>0&&price <=
                 eventCategories[tokenIdsPerCategories[tokenId]]
                     .thresholdResalePrice,
             "Price exceed."
         );
         require(block.timestamp < eventDate, "past event");
-        secondMarketTokenIdsByPrice[tokenId] = price;
+       
+        secondMarketToken[tokenId] = TokenForResale(true, price);
         emit emitInSecondMarket(tokenId);
     }
+
+    function buySecondMarket(uint256 tokenId) external payable {
+        require(secondMarketToken[tokenId].forSale, "Token not for sale");
+        require(msg.value>=secondMarketToken[tokenId].price * 1 wei,"Not enought money.");
+        address tokenOwner = ownerOf(tokenId);
+        delete secondMarketToken[tokenId];
+        _transfer(tokenOwner, msg.sender, tokenId);
+        (bool sent,) = tokenOwner.call{value: msg.value}("");
+        require(sent, "Failed to perform transaction");
+    }
+
+
 
     function getCategory(
         string memory _category

@@ -205,10 +205,7 @@ describe("EventTickets", function () {
       expect(await this.eventTickets.tokenURI(ethers.keccak256(ethers.toUtf8Bytes('Cat11')))).to.be.equals('http://test.com');
     });
 
-
   });
-
-
   describe("sell", function () {
     beforeEach(async function () {
       Object.assign(this, await loadFixture(readyToPutInSecondMarket));
@@ -239,7 +236,10 @@ describe("EventTickets", function () {
 
     it("Should put in second market", async function () {
       await this.eventTickets.connect(this.firstSigner).sell(this.tokenId, 100);
-      expect(await this.eventTickets.secondMarketTokenIdsByPrice(this.tokenId)).to.be.equal(100);
+      let tokenForSale = await this.eventTickets.secondMarketToken(this.tokenId)
+    
+      expect(tokenForSale[0]).to.be.true;
+      expect(tokenForSale[1]).to.be.equals(100);
   
     });
     
@@ -247,10 +247,37 @@ describe("EventTickets", function () {
        expect(await this.eventTickets.connect(this.firstSigner).sell(this.tokenId, 99)).to.emit('emitInSecondMarket').withArgs(this.tokenId);
    
     });
+  });
+
+    describe("buySecondMarket", function () {
+      beforeEach(async function () {
+        Object.assign(this, await loadFixture(readyToPutInSecondMarket));
+        this.eventTickets.connect(this.firstSigner).sell(this.tokenId, 10)
+      });
+  
+      it("Should fail when the price of id token is less the specified one", async function () {
+        await expect(this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId)).to.be.revertedWith("Not enought money.");
+  
+      });
+
+      it("Should fail when the token is not for sale", async function () {
+         await this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId,{ value: ethers.parseUnits("10", "wei") });
+         await  expect(this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId,{ value: ethers.parseUnits("10", "wei") })).to.be.revertedWith("Token not for sale");
+  
+      });
 
 
+      it("Should transfer the token to the buyer", async function () {
+        await  this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId,{ value: ethers.parseUnits("10", "wei") });
+         expect( await this.eventTickets.ownerOf(this.tokenId)).to.be.equals(this.secondSigner.address);
+ 
+     });
 
 
+     it("should transfer amount  to the buyer", async function () {
+     
+     // to do
+   });
   });
 
 
