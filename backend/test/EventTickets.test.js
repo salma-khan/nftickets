@@ -18,7 +18,7 @@ describe("EventTickets", function () {
     const EVENT_NAME = "NFTTest";
     const EVENT_SYMBOL = "NFTSymb";
     const EVENT_DATE = Math.floor(new Date(new Date().getTime() + (1 * 24 * 60 * 60 * 1000) / 1000));
-  
+
     const [owner, otherSigner] = await ethers.getSigners();
     const EventTickets = await ethers.getContractFactory("EventTickets");
     const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL, EVENT_DATE);
@@ -33,18 +33,46 @@ describe("EventTickets", function () {
     const EVENT_DATE = Math.floor(new Date(new Date().getTime() + (1 * 24 * 60 * 60 * 1000) / 1000));
     const CATEGORY_1_NAME = "Cat1";
     const CATEGORY_2_NAME = "Cat2";
-    const categories = [[CATEGORY_1_NAME,10,20,100],[CATEGORY_2_NAME,20,50,150]];
+    const categories = [[CATEGORY_1_NAME, 10, 20, 100], [CATEGORY_2_NAME, 20, 50, 150]];
 
     const EventTickets = await ethers.getContractFactory("EventTickets");
-    const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL, 
-    EVENT_DATE);
+    const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL,
+      EVENT_DATE);
+
+
 
     await eventTickets.categories(categories);
     await eventTickets.startSell();
 
-    return { eventTickets,CATEGORY_1_NAME,CATEGORY_2_NAME };
+
+
+    return { eventTickets, CATEGORY_1_NAME, CATEGORY_2_NAME };
   }
 
+
+  async function readyToPutInSecondMarket() {
+
+    const EVENT_NAME = "NFTTest";
+    const EVENT_SYMBOL = "NFTSymb";
+    const EVENT_DATE = Math.floor(new Date(new Date().getTime() + (1 * 24 * 60 * 60 * 1000) / 1000));
+    const CATEGORY_1_NAME = "Cat1";
+    const CATEGORY_2_NAME = "Cat2";
+    const categories = [[CATEGORY_1_NAME, 10, 20, 100], [CATEGORY_2_NAME, 20, 50, 150]];
+
+    const EventTickets = await ethers.getContractFactory("EventTickets");
+    const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL,
+      EVENT_DATE);
+    const [owner, firstSigner, secondSigner] = await ethers.getSigners();
+
+    const tokenId = ethers.keccak256(ethers.toUtf8Bytes('Cat11'))
+
+    await eventTickets.categories(categories);
+    await eventTickets.startSell();
+    await eventTickets.connect(firstSigner).buy(1, CATEGORY_1_NAME, "http://tes.com", { value: ethers.parseUnits("10", "wei") });
+
+
+    return { firstSigner, eventTickets, secondSigner, tokenId };
+  }
 
 
 
@@ -63,32 +91,32 @@ describe("EventTickets", function () {
       Object.assign(this, await loadFixture(freshDeployEventTicket));
     });
 
-    it("should fails when sell is started", async function () {   
-      await this.eventTickets.categories([['CAT1', 10, 10, 100]]);  
+    it("should fails when sell is started", async function () {
+      await this.eventTickets.categories([['CAT1', 10, 10, 100]]);
       await this.eventTickets.startSell();
       await expect(this.eventTickets.categories([['CAT2', 10, 10, 100]])).to.be.revertedWith("sell is started");
 
     });
 
     it("Should fail when categories more than 8", async function () {
-     
-      const categories = Array.from({ length: 9 }, () => ['cat', 10, 12,100]);
+
+      const categories = Array.from({ length: 9 }, () => ['cat', 10, 12, 100]);
       await expect(this.eventTickets.categories(categories)).to.be.revertedWith("8 categories max");
 
     });
 
     it("Should fail when it not an owner", async function () {
 
-      const addCat = [['Gold', 10, 20,100], ['Silver', 40, 34,100]];
+      const addCat = [['Gold', 10, 20, 100], ['Silver', 40, 34, 100]];
       await expect(this.eventTickets.connect(this.otherSigner).categories(addCat)).to.be.reverted;
     });
 
     it("Should successfully create categories", async function () {
- 
-      const addCat = [['Gold', 10, 20,100], ['Silver', 40, 34, 100]];
+
+      const addCat = [['Gold', 10, 20, 100], ['Silver', 40, 34, 100]];
       await this.eventTickets.categories(addCat);
       let categories = await this.eventTickets.getCategories();
-      
+
       expect(categories.length).equal(addCat.length);
       expect(categories.every((value, index) => value === addCat[index]));
     });
@@ -109,7 +137,7 @@ describe("EventTickets", function () {
     });
 
     it("Should emit an event", async function () {
-      await this.eventTickets.categories([['Cat',10,100,200]]);
+      await this.eventTickets.categories([['Cat', 10, 100, 200]]);
       expect(await this.eventTickets.startSell()).to.emit('SellingStarted');
     });
 
@@ -128,18 +156,18 @@ describe("EventTickets", function () {
     });
 
     it("should fail when not found category", async function () {
-   
+
       await expect(this.eventTickets.buy(1, 'Gold', 'http://test.com')).to.be.revertedWith("Category unknown");
     });
 
     it("should fail when buy after event", async function () {
-  
+
       await network.provider.send("evm_setNextBlockTimestamp", [Math.floor(new Date(new Date().getTime() + (2 * 24 * 60 * 60 * 1000) / 1000))])
       await expect(this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com')).to.be.revertedWith("past event");
     });
 
     it("Should fail when the price is less then required", async function () {
- 
+
       await expect(this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("9", "wei") })).to.be.revertedWith("Not enought money");
     });
 
@@ -174,8 +202,53 @@ describe("EventTickets", function () {
     it("Should set the uri token", async function () {
 
       await this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "wei") });
-      expect( await this.eventTickets.tokenURI(ethers.keccak256(ethers.toUtf8Bytes('Cat11')))).to.be.equals('http://test.com');
+      expect(await this.eventTickets.tokenURI(ethers.keccak256(ethers.toUtf8Bytes('Cat11')))).to.be.equals('http://test.com');
     });
+
+
+  });
+
+
+  describe("sell", function () {
+    beforeEach(async function () {
+      Object.assign(this, await loadFixture(readyToPutInSecondMarket));
+    });
+
+    it("Should fail when tokenId is not owned by the sender", async function () {
+      await expect(this.eventTickets.connect(this.secondSigner).sell(this.tokenId, 100)).to.be.revertedWith("Not owner.");
+
+    });
+
+    it("Should fail when token Id not exists", async function () {
+      const tokenId = ethers.keccak256(ethers.toUtf8Bytes('Cat13'))
+      await expect(this.eventTickets.connect(this.firstSigner).sell(tokenId, 100)).to.be.reverted
+
+    });
+
+    it("Should fail when price exceed the defined one", async function () {
+      await expect(this.eventTickets.connect(this.firstSigner).sell(this.tokenId, 150)).to.be.revertedWith("Price exceed.")
+
+    });
+
+
+    it("Shoud fail when the event is over", async function () {
+      await network.provider.send("evm_setNextBlockTimestamp", [Math.floor(new Date(new Date().getTime() + (2 * 24 * 60 * 60 * 1000) / 1000))])
+      await expect(this.eventTickets.connect(this.firstSigner).sell(this.tokenId, 99)).to.be.revertedWith("past event")
+
+    });
+
+    it("Should put in second market", async function () {
+      await this.eventTickets.connect(this.firstSigner).sell(this.tokenId, 100);
+      expect(await this.eventTickets.secondMarketTokenIdsByPrice(this.tokenId)).to.be.equal(100);
+  
+    });
+    
+    it("Should emit event when it is in resale", async function () {
+       expect(await this.eventTickets.connect(this.firstSigner).sell(this.tokenId, 99)).to.emit('emitInSecondMarket').withArgs(this.tokenId);
+   
+    });
+
+
 
 
   });

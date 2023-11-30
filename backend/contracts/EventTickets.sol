@@ -8,6 +8,7 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 contract EventTickets is ERC721URIStorage, Ownable {
     using Strings for uint256;
     event SellingStarted();
+    event emitInSecondMarket(uint256);
 
     uint8 constant MAX_CATEGORY = 8;
     bool isSaleActive;
@@ -16,13 +17,18 @@ contract EventTickets is ERC721URIStorage, Ownable {
         string category;
         uint32 price;
         uint32 quantity;
+        uint32 thresholdResalePrice;
     }
 
     uint256 eventDate;
 
     mapping(string => mapping(uint32 => bool)) mintedSeat;
 
-    Category[]  eventCategories;
+    mapping(uint256 => uint8) tokenIdsPerCategories;
+
+    mapping(uint256 => uint32) public secondMarketTokenIdsByPrice;
+
+    Category[] eventCategories;
 
     constructor(
         string memory _tokenName,
@@ -36,8 +42,8 @@ contract EventTickets is ERC721URIStorage, Ownable {
         return eventDate;
     }
 
-    function getCategories() external view returns (Category[] memory){
-           return  eventCategories;
+    function getCategories() external view returns (Category[] memory) {
+        return eventCategories;
     }
 
     function categories(Category[] memory _categories) external onlyOwner {
@@ -49,7 +55,7 @@ contract EventTickets is ERC721URIStorage, Ownable {
     }
 
     function startSell() external onlyOwner {
-        require(eventCategories.length>0, "No categories provided");
+        require(eventCategories.length > 0, "No categories provided");
         isSaleActive = true;
         emit SellingStarted();
     }
@@ -63,7 +69,7 @@ contract EventTickets is ERC721URIStorage, Ownable {
 
         require(block.timestamp < eventDate, "past event");
 
-        Category memory cat = getCategory(_category);
+        (Category memory cat, uint8 index) = getCategory(_category);
 
         require(msg.value >= cat.price * 1 wei, "Not enought money");
 
@@ -76,21 +82,37 @@ contract EventTickets is ERC721URIStorage, Ownable {
             keccak256(abi.encodePacked(_category, Strings.toString(_seat)))
         );
 
+        tokenIdsPerCategories[tokenId] = index;
         _safeMint(msg.sender, tokenId);
         _setTokenURI(tokenId, _tokenUri);
 
         return tokenId;
     }
 
-    function getCategory(string memory _category) private view returns (Category memory) {
-        for (uint i = 0; i < eventCategories.length; i++) {
+    function sell(uint256 tokenId, uint32 price) external {
+        require(msg.sender == ownerOf(tokenId), "Not owner.");
+        require(
+            price <=
+                eventCategories[tokenIdsPerCategories[tokenId]]
+                    .thresholdResalePrice,
+            "Price exceed."
+        );
+        require(block.timestamp < eventDate, "past event");
+        secondMarketTokenIdsByPrice[tokenId] = price;
+        emit emitInSecondMarket(tokenId);
+    }
+
+    function getCategory(
+        string memory _category
+    ) private view returns (Category memory, uint8 index) {
+        for (uint8 i = 0; i < eventCategories.length; i++) {
             if (
-               keccak256( abi.encodePacked(_category)) == keccak256(abi.encodePacked(eventCategories[i].category))){
-                return eventCategories[i];
+                keccak256(abi.encodePacked(_category)) ==
+                keccak256(abi.encodePacked(eventCategories[i].category))
+            ) {
+                return (eventCategories[i], i);
             }
         }
         revert("Category unknown");
     }
-
-
 }
