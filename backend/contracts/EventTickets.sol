@@ -49,6 +49,7 @@ contract EventTickets is ERC721URIStorage, Ownable {
     }
 
     function startSell() external onlyOwner {
+        require(eventCategories.length>0, "No categories provided");
         isSaleActive = true;
         emit SellingStarted();
     }

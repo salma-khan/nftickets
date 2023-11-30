@@ -10,17 +10,39 @@ const { ethers } = require("hardhat");
 
 describe("EventTickets", function () {
 
-  async function deployEventTickets() {
 
-    const eventName = "NFTTest";
-    const eventSymbol = "NFTSymb";
-    const dateEvent = Math.floor(new Date(new Date().getTime() + (1 * 24 * 60 * 60 * 1000) / 1000));
+
+
+  async function freshDeployEventTicket() {
+
+    const EVENT_NAME = "NFTTest";
+    const EVENT_SYMBOL = "NFTSymb";
+    const EVENT_DATE = Math.floor(new Date(new Date().getTime() + (1 * 24 * 60 * 60 * 1000) / 1000));
+  
     const [owner, otherSigner] = await ethers.getSigners();
     const EventTickets = await ethers.getContractFactory("EventTickets");
-    const eventTickets = await EventTickets.deploy(eventName, eventSymbol, dateEvent);
+    const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL, EVENT_DATE);
+    return { owner, eventTickets, EVENT_NAME, EVENT_SYMBOL, EVENT_DATE, otherSigner };
 
+  }
 
-    return { owner, eventTickets, eventName, eventSymbol, dateEvent, otherSigner };
+  async function readyForSaleEventTickets() {
+
+    const EVENT_NAME = "NFTTest";
+    const EVENT_SYMBOL = "NFTSymb";
+    const EVENT_DATE = Math.floor(new Date(new Date().getTime() + (1 * 24 * 60 * 60 * 1000) / 1000));
+    const CATEGORY_1_NAME = "Cat1";
+    const CATEGORY_2_NAME = "Cat2";
+    const categories = [[CATEGORY_1_NAME,10,20,100],[CATEGORY_2_NAME,20,50,150]];
+
+    const EventTickets = await ethers.getContractFactory("EventTickets");
+    const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL, 
+    EVENT_DATE);
+
+    await eventTickets.categories(categories);
+    await eventTickets.startSell();
+
+    return { eventTickets,CATEGORY_1_NAME,CATEGORY_2_NAME };
   }
 
 
@@ -28,147 +50,135 @@ describe("EventTickets", function () {
 
   describe("Deployment", function () {
     it("should be deployed with right values", async function () {
-      const { eventTickets, eventName, eventSymbol, dateEvent } = await loadFixture(deployEventTickets);
-      expect(await eventTickets.name()).is.equal(eventName);
-      expect(await eventTickets.symbol()).is.equal(eventSymbol);
-      expect(await eventTickets.date()).is.equal(dateEvent);
+      const { eventTickets, EVENT_NAME, EVENT_SYMBOL, EVENT_DATE } = await loadFixture(freshDeployEventTicket);
+      expect(await eventTickets.name()).is.equal(EVENT_NAME);
+      expect(await eventTickets.symbol()).is.equal(EVENT_SYMBOL);
+      expect(await eventTickets.date()).is.equal(EVENT_DATE);
     });
   });
 
   describe("Add categories", function () {
-    it("should fails when sell is started", async function () {
-      const { eventTickets } = await loadFixture(deployEventTickets);
-      await eventTickets.startSell();
-      await expect(eventTickets.categories([['Gold', 10, 10]])).to.be.revertedWith("sell is started");
+
+    beforeEach(async function () {
+      Object.assign(this, await loadFixture(freshDeployEventTicket));
+    });
+
+    it("should fails when sell is started", async function () {   
+      await this.eventTickets.categories([['CAT1', 10, 10, 100]]);  
+      await this.eventTickets.startSell();
+      await expect(this.eventTickets.categories([['CAT2', 10, 10, 100]])).to.be.revertedWith("sell is started");
 
     });
 
     it("Should fail when categories more than 8", async function () {
-      const { eventTickets } = await loadFixture(deployEventTickets);
-      const categories = Array.from({ length: 9 }, () => ['cat', 10, 12]);
-      await expect(eventTickets.categories(categories)).to.be.revertedWith("8 categories max");
+     
+      const categories = Array.from({ length: 9 }, () => ['cat', 10, 12,100]);
+      await expect(this.eventTickets.categories(categories)).to.be.revertedWith("8 categories max");
 
     });
 
     it("Should fail when it not an owner", async function () {
-      const { eventTickets, otherSigner } = await loadFixture(deployEventTickets);
-      const addCat = [['Gold', 10, 20], ['Silver', 40, 34]];
-      await expect(eventTickets.connect(otherSigner).categories(addCat)).to.be.reverted;
+
+      const addCat = [['Gold', 10, 20,100], ['Silver', 40, 34,100]];
+      await expect(this.eventTickets.connect(this.otherSigner).categories(addCat)).to.be.reverted;
     });
 
     it("Should successfully create categories", async function () {
-      const { eventTickets } = await loadFixture(deployEventTickets);
-      const addCat = [['Gold', 10, 20], ['Silver', 40, 34]];
-      await eventTickets.categories(addCat);
-      let categories = await eventTickets.getCategories();
+ 
+      const addCat = [['Gold', 10, 20,100], ['Silver', 40, 34, 100]];
+      await this.eventTickets.categories(addCat);
+      let categories = await this.eventTickets.getCategories();
+      
       expect(categories.length).equal(addCat.length);
       expect(categories.every((value, index) => value === addCat[index]));
     });
   });
 
 
-  describe("start sell", function () {
+  describe("Start sell", function () {
+    beforeEach(async function () {
+      Object.assign(this, await loadFixture(freshDeployEventTicket));
+    });
+
     it("Should fail when it's not owner", async function () {
-      const { eventTickets, otherSigner } = await loadFixture(deployEventTickets);
-      await expect(eventTickets.connect(otherSigner).startSell()).to.be.reverted;
+      await expect(this.eventTickets.connect(this.otherSigner).startSell()).to.be.reverted;
+    });
+
+    it("Should fail when categories not provided", async function () {
+      await expect(this.eventTickets.startSell()).to.be.revertedWith("No categories provided");
     });
 
     it("Should emit an event", async function () {
-      const { eventTickets } = await loadFixture(deployEventTickets);
-      expect(await eventTickets.startSell()).to.emit('SellingStarted');
+      await this.eventTickets.categories([['Cat',10,100,200]]);
+      expect(await this.eventTickets.startSell()).to.emit('SellingStarted');
     });
 
   });
 
 
   describe("buy", function () {
+    beforeEach(async function () {
+      Object.assign(this, await loadFixture(readyForSaleEventTickets));
+    });
+
     it("should fail when sale is not active", async function () {
-      const { eventTickets } = await loadFixture(deployEventTickets);
-      await expect(eventTickets.buy(1, 'Gold', 'http://test.com')).to.be.revertedWith("Sale is not opened");
+      Object.assign(this, await loadFixture(freshDeployEventTicket));
+      await expect(this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com')).to.be.revertedWith("Sale is not opened");
+
     });
 
     it("should fail when not found category", async function () {
-      const { eventTickets } = await loadFixture(deployEventTickets);
-      eventTickets.startSell();
-      await expect(eventTickets.buy(1, 'Gold', 'http://test.com')).to.be.revertedWith("Category unknown");
+   
+      await expect(this.eventTickets.buy(1, 'Gold', 'http://test.com')).to.be.revertedWith("Category unknown");
     });
 
     it("should fail when buy after event", async function () {
-      const { eventTickets } = await loadFixture(deployEventTickets);
-      const addCat = [['Gold', 10, 20], ['Silver', 40, 34]];
-      await eventTickets.categories(addCat);
-      eventTickets.startSell();
-
+  
       await network.provider.send("evm_setNextBlockTimestamp", [Math.floor(new Date(new Date().getTime() + (2 * 24 * 60 * 60 * 1000) / 1000))])
-      await expect(eventTickets.buy(1, 'Gold', 'http://test.com')).to.be.revertedWith("past event");
+      await expect(this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com')).to.be.revertedWith("past event");
     });
 
     it("Should fail when the price is less then required", async function () {
-      const { eventTickets } = await loadFixture(deployEventTickets);
-      const addCat = [['Gold', 10, 20]];
-      await eventTickets.categories(addCat);
-      eventTickets.startSell();
-      await expect(eventTickets.buy(1, 'Gold', 'http://test.com', { value: ethers.parseUnits("9", "wei") })).to.be.revertedWith("Not enought money");
+ 
+      await expect(this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("9", "wei") })).to.be.revertedWith("Not enought money");
     });
 
     it("Should fail when the seat number is not valid", async function () {
-      const { eventTickets } = await loadFixture(deployEventTickets);
-      const addCat = [['Gold', 10, 20]];
-      await eventTickets.categories(addCat);
-      eventTickets.startSell();
-      await expect(eventTickets.buy(21, 'Gold', 'http://test.com', { value: ethers.parseUnits("10", "wei") })).to.be.revertedWith("Invalid seatNumber");
+
+      await expect(this.eventTickets.buy(21, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "wei") })).to.be.revertedWith("Invalid seatNumber");
     });
 
     it("Should fail when the seat number is not valid", async function () {
-      const { eventTickets } = await loadFixture(deployEventTickets);
-      const addCat = [['Gold', 10, 20]];
-      await eventTickets.categories(addCat);
-      eventTickets.startSell();
-      await expect(eventTickets.buy(0, 'Gold', 'http://test.com', { value: ethers.parseUnits("10", "wei") })).to.be.revertedWith("Invalid seatNumber");
+
+      await expect(this.eventTickets.buy(0, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "wei") })).to.be.revertedWith("Invalid seatNumber");
     });
 
 
     it("Should fail when the seat number is already taken", async function () {
-      const { eventTickets } = await loadFixture(deployEventTickets);
-      const addCat = [['Gold', 10, 20]];
-      await eventTickets.categories(addCat);
-      eventTickets.startSell();
-      await eventTickets.buy(1, 'Gold', 'http://test.com', { value: ethers.parseUnits("10", "wei") })
-      await expect(eventTickets.buy(1, 'Gold', 'http://test.com', { value: ethers.parseUnits("10", "wei") })).to.be.revertedWith("Already taken");
+
+      await this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "wei") });
+
+      await expect(this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "wei") })).to.be.revertedWith("Already taken");
     });
 
 
     it("Should Get a tokenId when minted successfully", async function () {
-      const { eventTickets } = await loadFixture(deployEventTickets);
-      const addCat = [['Gold', 10, 20]];
-      await eventTickets.categories(addCat);
-      await eventTickets.startSell();
-      const tx = await eventTickets.buy(1, 'Gold', 'http://test.com', { value: ethers.parseUnits("10", "wei") });
+
+      const tx = await this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "wei") });
       await tx.wait();
-      const filter = eventTickets.filters.MetadataUpdate();
-      const events = await eventTickets.queryFilter(filter);
-      expect(events[0].args[0]).to.be.equals(ethers.keccak256(ethers.toUtf8Bytes('Gold1')));
+      const filter = this.eventTickets.filters.MetadataUpdate();
+      const events = await this.eventTickets.queryFilter(filter);
+      expect(events[0].args[0]).to.be.equals(ethers.keccak256(ethers.toUtf8Bytes('Cat11')));
     });
 
     it("Should set the uri token", async function () {
-      const { eventTickets } = await loadFixture(deployEventTickets);
-      const addCat = [['Gold', 10, 20]];
-      await eventTickets.categories(addCat);
-      await eventTickets.startSell();
-      await eventTickets.buy(1, 'Gold', 'http://test.com', { value: ethers.parseUnits("10", "wei") });
-      expect( await eventTickets.tokenURI(ethers.keccak256(ethers.toUtf8Bytes('Gold1')))).to.be.equals('http://test.com');
+
+      await this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "wei") });
+      expect( await this.eventTickets.tokenURI(ethers.keccak256(ethers.toUtf8Bytes('Cat11')))).to.be.equals('http://test.com');
     });
 
 
   });
-
-
-
-
-
-
-
-
 
 
 });
