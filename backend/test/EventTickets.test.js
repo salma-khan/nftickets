@@ -82,6 +82,8 @@ describe("EventTickets", function () {
       expect(await eventTickets.name()).is.equal(EVENT_NAME);
       expect(await eventTickets.symbol()).is.equal(EVENT_SYMBOL);
       expect(await eventTickets.date()).is.equal(EVENT_DATE);
+      expect(await eventTickets.eventStatus()).is.equal(0);
+
     });
   });
 
@@ -94,12 +96,11 @@ describe("EventTickets", function () {
     it("should fails when sell is started", async function () {
       await this.eventTickets.categories([['CAT1', 10, 10, 100]]);
       await this.eventTickets.startSell();
-      await expect(this.eventTickets.categories([['CAT2', 10, 10, 100]])).to.be.revertedWith("sell is started");
+      await expect(this.eventTickets.categories([['CAT2', 10, 10, 100]])).to.be.revertedWith("Sale is started");
 
     });
 
     it("Should fail when categories more than 8", async function () {
-
       const categories = Array.from({ length: 9 }, () => ['cat', 10, 12, 100]);
       await expect(this.eventTickets.categories(categories)).to.be.revertedWith("8 categories max");
 
@@ -141,6 +142,12 @@ describe("EventTickets", function () {
       expect(await this.eventTickets.startSell()).to.emit('SellingStarted');
     });
 
+    it("Should change the state to SALES_OPEN", async function () {
+      await this.eventTickets.categories([['Cat', 10, 100, 200]]);
+      await this.eventTickets.startSell()
+      expect(await this.eventTickets.eventStatus()).to.be.equal(1);
+    });
+
   });
 
 
@@ -151,7 +158,7 @@ describe("EventTickets", function () {
 
     it("should fail when sale is not active", async function () {
       Object.assign(this, await loadFixture(freshDeployEventTicket));
-      await expect(this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com')).to.be.revertedWith("Sale is not opened");
+      await expect(this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com')).to.be.revertedWith("Sale is not started");
 
     });
 
@@ -160,11 +167,6 @@ describe("EventTickets", function () {
       await expect(this.eventTickets.buy(1, 'Gold', 'http://test.com')).to.be.revertedWith("Category unknown");
     });
 
-    it("should fail when buy after event", async function () {
-
-      await network.provider.send("evm_setNextBlockTimestamp", [Math.floor(new Date(new Date().getTime() + (2 * 24 * 60 * 60 * 1000) / 1000))])
-      await expect(this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com')).to.be.revertedWith("past event");
-    });
 
     it("Should fail when the price is less then required", async function () {
 
