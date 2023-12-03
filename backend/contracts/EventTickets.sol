@@ -73,7 +73,7 @@ contract EventTickets is
     modifier requireSaleIsOpen() {
         require(
             eventStatus == EventStatus.TICKET_SALES_OPEN,
-            "Sale is not started"
+            "Sale is not open"
         );
         _;
     }
@@ -133,7 +133,7 @@ contract EventTickets is
                     .thresholdResalePrice,
             "Price exceed."
         );
-        require(block.timestamp < eventDate, "past event");
+    
 
         secondMarketToken[tokenId] = TokenForResale(true, price);
         emit emitInSecondMarket(tokenId);
@@ -157,7 +157,9 @@ contract EventTickets is
     function checkUpkeep(
         bytes calldata
     ) external view override returns (bool upkeepNeeded, bytes memory) {
-        upkeepNeeded = block.timestamp> eventDate + 3 hours;
+        uint timesUp =  eventDate + 3 hours;
+       upkeepNeeded =  block.timestamp> timesUp;
+    
 
     }
 

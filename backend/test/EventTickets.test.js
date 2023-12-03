@@ -1,10 +1,12 @@
 const {
-  time,
+  
   loadFixture,
-} = require("@nomicfoundation/hardhat-toolbox/network-helpers");
+helpers} = require("@nomicfoundation/hardhat-toolbox/network-helpers");
+ const {time}= require("@nomicfoundation/hardhat-network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { ethers, network } = require("hardhat");
+
 
 
 
@@ -69,6 +71,7 @@ describe("EventTickets", function () {
     await eventTickets.categories(categories);
     await eventTickets.startSell();
     await eventTickets.connect(firstSigner).buy(1, CATEGORY_1_NAME, "http://tes.com", { value: ethers.parseUnits("10", "wei") });
+
 
 
     return { firstSigner, eventTickets, secondSigner, tokenId };
@@ -158,7 +161,7 @@ describe("EventTickets", function () {
 
     it("should fail when sale is not active", async function () {
       Object.assign(this, await loadFixture(freshDeployEventTicket));
-      await expect(this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com')).to.be.revertedWith("Sale is not started");
+      await expect(this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com')).to.be.revertedWith("Sale is not open");
 
     });
 
@@ -231,56 +234,84 @@ describe("EventTickets", function () {
 
 
     it("Shoud fail when the event is over", async function () {
-      await network.provider.send("evm_setNextBlockTimestamp", [Math.floor(new Date(new Date().getTime() + (2 * 24 * 60 * 60 * 1000) / 1000))])
-      await expect(this.eventTickets.connect(this.firstSigner).sell(this.tokenId, 99)).to.be.revertedWith("past event")
+      await this.eventTickets.performUpkeep("0x");
+      await expect(this.eventTickets.connect(this.firstSigner).sell(this.tokenId, 99)).to.be.revertedWith("Sale is not open")
 
     });
 
     it("Should put in second market", async function () {
       await this.eventTickets.connect(this.firstSigner).sell(this.tokenId, 100);
       let tokenForSale = await this.eventTickets.secondMarketToken(this.tokenId)
-    
+
       expect(tokenForSale[0]).to.be.true;
       expect(tokenForSale[1]).to.be.equals(100);
-  
+
     });
-    
+
     it("Should emit event when it is in resale", async function () {
-       expect(await this.eventTickets.connect(this.firstSigner).sell(this.tokenId, 99)).to.emit('emitInSecondMarket').withArgs(this.tokenId);
-   
+      expect(await this.eventTickets.connect(this.firstSigner).sell(this.tokenId, 99)).to.emit('emitInSecondMarket').withArgs(this.tokenId);
+
     });
   });
 
-    describe("buySecondMarket", function () {
-      beforeEach(async function () {
-        Object.assign(this, await loadFixture(readyToPutInSecondMarket));
-        this.eventTickets.connect(this.firstSigner).sell(this.tokenId, 10)
-      });
-  
-      it("Should fail when the price of id token is less the specified one", async function () {
-        await expect(this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId)).to.be.revertedWith("Not enought money.");
-  
-      });
+  describe("buySecondMarket", function () {
+    beforeEach(async function () {
+      Object.assign(this, await loadFixture(readyToPutInSecondMarket));
+      this.eventTickets.connect(this.firstSigner).sell(this.tokenId, 10)
 
-      it("Should fail when the token is not for sale", async function () {
-         await this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId,{ value: ethers.parseUnits("10", "wei") });
-         await  expect(this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId,{ value: ethers.parseUnits("10", "wei") })).to.be.revertedWith("Token not for sale");
-  
-      });
+    });
 
+    it("Should fail when the price of id token is less the specified one", async function () {
+      await expect(this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId)).to.be.revertedWith("Not enought money.");
 
-      it("Should transfer the token to the buyer", async function () {
-        await  this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId,{ value: ethers.parseUnits("10", "wei") });
-         expect( await this.eventTickets.ownerOf(this.tokenId)).to.be.equals(this.secondSigner.address);
- 
-     });
+    });
+
+    it("Should fail when the token is not for sale", async function () {
+      await this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId, { value: ethers.parseUnits("10", "wei") });
+      await expect(this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId, { value: ethers.parseUnits("10", "wei") })).to.be.revertedWith("Token not for sale");
+
+    });
 
 
-     it("should transfer amount  to the buyer", async function () {
-     
-     // to do
-   });
+    it("Should transfer the token to the buyer", async function () {
+      await this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId, { value: ethers.parseUnits("10", "wei") });
+      expect(await this.eventTickets.ownerOf(this.tokenId)).to.be.equals(this.secondSigner.address);
+
+    });
+
+
+    it("should transfer amount to the buyer", async function () {
+      const initialBalance = await ethers.provider.getBalance(this.firstSigner);
+      const initialBalanceSeller = await ethers.provider.getBalance(this.firstSigner);
+      await this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId, { value: ethers.parseEther("1") });
+      expect(await ethers.provider.getBalance(this.firstSigner)).is.greaterThan(initialBalance)
+      expect(await ethers.provider.getBalance(this.secondSigner)).is.lessThan(initialBalanceSeller)
+    });
   });
+
+  describe("checkUpkeep", function () {
+    beforeEach(async function () {
+      Object.assign(this, await loadFixture(freshDeployEventTicket));
+    });
+
+    it("Should return true when event is finished", async function(){
+     const t =  Math.floor(new Date(new Date().getTime() + (7 * 24 * 60 * 60 * 1000) / 1000))
+    await time.increase(t);
+    let result = await this.eventTickets.checkUpkeep("0x");     
+    expect(result[0]).to.be.true;
+       
+    }
+  )
+  it("Should return false when event is not finished", async function(){
+    let result = await this.eventTickets.checkUpkeep("0x");     
+    expect(result[0]).to.be.false;
+       
+   });
+  
+  
+});
+
+ 
 
 
 });
