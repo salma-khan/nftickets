@@ -18,16 +18,21 @@ module.exports = {
       chainId: 421614,
 
     },
+  
   },
   etherscan: {
-    apiKey: ETHERSCAN_API_KEY
+    apiKey: "5JCG5XU3WUSSFJ8YE8WRS96MQXRVKFA6HR"
   },
+
+
   solidity: {
-    compilers: [
-      {
-      version: "0.8.20"
-      }
-    ]
+    version: "0.8.21",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 1000,
+      },
   }
 
-};
+  }
+}

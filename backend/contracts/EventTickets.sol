@@ -12,10 +12,11 @@ contract EventTickets is
     Ownable
 {
     using Strings for uint256;
-
     event SellingStarted();
-
     event emitInSecondMarket(uint256);
+
+    address public  forwarder;
+    address public admin;
 
     uint8 constant MAX_CATEGORY = 8;
 
@@ -57,9 +58,10 @@ contract EventTickets is
     constructor(
         string memory _tokenName,
         string memory _tokenSymbol,
-        uint256 _eventDate
+        uint256 _eventDate, address _admin
     ) ERC721(_tokenName, _tokenSymbol) Ownable(msg.sender) {
         eventDate = _eventDate;
+        admin = _admin;
     }
 
     modifier requireSaleIsNotOpen() {
@@ -78,12 +80,12 @@ contract EventTickets is
         _;
     }
 
-    function date() external view returns (uint256) {
-        return eventDate;
-    }
-
-    function getCategories() external view returns (Category[] memory) {
-        return eventCategories;
+       modifier requirePastEvent() {
+        require(
+            eventStatus == EventStatus.EVENT_FINISH,
+            "Event did not occures"
+        );
+        _;
     }
 
     function categories(
@@ -159,16 +161,30 @@ contract EventTickets is
     ) external view override returns (bool upkeepNeeded, bytes memory) {
         uint timesUp =  eventDate + 3 hours;
        upkeepNeeded =  block.timestamp> timesUp;
-    
-
     }
 
     function performUpkeep(
         bytes calldata 
     ) external override {
+        require(msg.sender == forwarder,"Not valid");
         eventStatus = EventStatus.EVENT_FINISH;
-
     }
+
+    function setForwarderAddress(address _forwarderAddress) external {
+        require(msg.sender == admin, "Not admin");
+        forwarder = _forwarderAddress;
+    }
+
+   function setAdmin(address _admin) external {
+        require(msg.sender == admin, "Not admin");
+        admin= _admin;
+    }
+
+   function withdraw() external onlyOwner requirePastEvent {
+    (bool sent, ) =  msg.sender.call{value: address(this).balance}("");
+    require(sent, "Failed to perform transaction");
+
+   }
 
     function getCategory(
         string memory _category
@@ -182,5 +198,13 @@ contract EventTickets is
             }
         }
         revert("Category unknown");
+    }
+
+    function date() external view returns (uint256) {
+        return eventDate;
+    }
+
+    function getCategories() external view returns (Category[] memory) {
+        return eventCategories;
     }
 }

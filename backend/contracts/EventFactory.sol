@@ -4,6 +4,8 @@ pragma solidity ^0.8.20;
 import "./EventTickets.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
+import {IKeeperRegistryMaster} from "@chainlink/contracts/src/v0.8/automation/interfaces/v2_1/IKeeperRegistryMaster.sol";
+
 import "./AutomationRegistrarInterface.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -14,12 +16,16 @@ contract EventFactory is Ownable {
 
     address public  link;
     address  public registrar;
+    address public registry;
+    address admin;
 
 
-    constructor(address _link, address _registrar) Ownable(msg.sender){
+
+    constructor(address _link, address _registrar, address _registry) Ownable(msg.sender){
         link = _link;
-        registrar = _registrar;  
-   
+        registrar = _registrar;
+        registry = _registry;
+        admin = msg.sender;
     }
 
     function create(
@@ -33,16 +39,20 @@ contract EventFactory is Ownable {
             _salt,
             abi.encodePacked(
                 type(EventTickets).creationCode,
-                abi.encode(eventName, eventSymbol, date)
+                abi.encode(eventName, eventSymbol, date, address(this))
             )
         );
 
+       
+        uint keepUpId= register(addr, eventName);
+        EventTickets(addr).setForwarderAddress(IKeeperRegistryMaster(registry).getForwarder(keepUpId));
+        EventTickets(addr).setAdmin(admin);
+
         EventTickets(addr).transferOwnership(msg.sender);
-        register(addr, eventName);
         emit EventCreated(addr);
     }
 
-    function register(address _deployedContract, string memory eventName) private {
+    function register(address _deployedContract, string memory eventName) private  returns (uint) {
         RegistrationParams memory registrationData = RegistrationParams(
             eventName,
             hex"",
@@ -63,6 +73,7 @@ contract EventFactory is Ownable {
         } else {
             revert("Unable to approve");
         }
+        return upkeepID;
     }
 
     function setLinkAddress(address _link) external  onlyOwner{

@@ -20,11 +20,11 @@ describe("EventTickets", function () {
     const EVENT_NAME = "NFTTest";
     const EVENT_SYMBOL = "NFTSymb";
     const EVENT_DATE = Math.floor(new Date(new Date().getTime() + (1 * 24 * 60 * 60 * 1000) / 1000));
-
-    const [owner, otherSigner] = await ethers.getSigners();
     const EventTickets = await ethers.getContractFactory("EventTickets");
-    const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL, EVENT_DATE);
-    return { owner, eventTickets, EVENT_NAME, EVENT_SYMBOL, EVENT_DATE, otherSigner };
+    const [ owner, firstSigner, secondSigner, forward, admin] = await ethers.getSigners();
+    const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL, EVENT_DATE, admin );
+    await eventTickets.connect(admin).setForwarderAddress(forward);
+    return { owner, eventTickets, EVENT_NAME, EVENT_SYMBOL, EVENT_DATE, firstSigner, forward , admin};
 
   }
 
@@ -36,18 +36,14 @@ describe("EventTickets", function () {
     const CATEGORY_1_NAME = "Cat1";
     const CATEGORY_2_NAME = "Cat2";
     const categories = [[CATEGORY_1_NAME, 10, 20, 100], [CATEGORY_2_NAME, 20, 50, 150]];
+    const [ owner, firstSigner, secondSigner, forward, admin] = await ethers.getSigners();
 
     const EventTickets = await ethers.getContractFactory("EventTickets");
     const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL,
-      EVENT_DATE);
-
-
-
+      EVENT_DATE, admin);
+    await eventTickets.connect(admin).setForwarderAddress(forward);
     await eventTickets.categories(categories);
     await eventTickets.startSell();
-
-
-
     return { eventTickets, CATEGORY_1_NAME, CATEGORY_2_NAME };
   }
 
@@ -60,21 +56,20 @@ describe("EventTickets", function () {
     const CATEGORY_1_NAME = "Cat1";
     const CATEGORY_2_NAME = "Cat2";
     const categories = [[CATEGORY_1_NAME, 10, 20, 100], [CATEGORY_2_NAME, 20, 50, 150]];
+    const [ owner, firstSigner, secondSigner, forward, admin] = await ethers.getSigners();
 
     const EventTickets = await ethers.getContractFactory("EventTickets");
     const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL,
-      EVENT_DATE);
-    const [owner, firstSigner, secondSigner] = await ethers.getSigners();
-
+      EVENT_DATE, admin);
+     
+      await eventTickets.connect(admin).setForwarderAddress(forward);
     const tokenId = ethers.keccak256(ethers.toUtf8Bytes('Cat11'))
 
     await eventTickets.categories(categories);
     await eventTickets.startSell();
     await eventTickets.connect(firstSigner).buy(1, CATEGORY_1_NAME, "http://tes.com", { value: ethers.parseUnits("10", "wei") });
 
-
-
-    return { firstSigner, eventTickets, secondSigner, tokenId };
+    return { firstSigner, eventTickets, secondSigner, tokenId, forward };
   }
 
 
@@ -112,7 +107,7 @@ describe("EventTickets", function () {
     it("Should fail when it not an owner", async function () {
 
       const addCat = [['Gold', 10, 20, 100], ['Silver', 40, 34, 100]];
-      await expect(this.eventTickets.connect(this.otherSigner).categories(addCat)).to.be.reverted;
+      await expect(this.eventTickets.connect(this.firstSigner).categories(addCat)).to.be.reverted;
     });
 
     it("Should successfully create categories", async function () {
@@ -133,7 +128,7 @@ describe("EventTickets", function () {
     });
 
     it("Should fail when it's not owner", async function () {
-      await expect(this.eventTickets.connect(this.otherSigner).startSell()).to.be.reverted;
+      await expect(this.eventTickets.connect(this.firstSigner).startSell()).to.be.reverted;
     });
 
     it("Should fail when categories not provided", async function () {
@@ -234,7 +229,7 @@ describe("EventTickets", function () {
 
 
     it("Shoud fail when the event is over", async function () {
-      await this.eventTickets.performUpkeep("0x");
+      await this.eventTickets.connect(this.forward).performUpkeep("0x");
       await expect(this.eventTickets.connect(this.firstSigner).sell(this.tokenId, 99)).to.be.revertedWith("Sale is not open")
 
     });
@@ -307,11 +302,57 @@ describe("EventTickets", function () {
     expect(result[0]).to.be.false;
        
    });
-  
-  
 });
 
- 
+describe("performUpKeep", function () {
+  beforeEach(async function () {
+    Object.assign(this, await loadFixture(freshDeployEventTicket));
+  });
 
+it("Should fail when it's not forward address", async function(){
+   await expect(this.eventTickets.performUpkeep("0x")).to.be.revertedWith("Not valid");     
+ });
+
+ it("Should change state when performUpkeep", async function(){
+  await this.eventTickets.connect(this.forward).performUpkeep("0x");
+  expect(await this.eventTickets.eventStatus()).equals(2);
+});
+
+
+
+});
+
+describe("setForwardAddress", function () {
+  beforeEach(async function () {
+    Object.assign(this, await loadFixture(freshDeployEventTicket));
+  });
+
+it("Should fail when it's not admin", async function(){
+   await expect(this.eventTickets.setForwarderAddress(this.firstSigner)).to.be.revertedWith("Not admin");     
+ });
+
+ it("should setForward address", async function(){
+  await this.eventTickets.connect(this.admin).setForwarderAddress(this.firstSigner);
+  expect(await this.eventTickets.forwarder()).equals(this.firstSigner.address);
+});
+
+
+
+});
+
+describe("setAdmin", function () {
+  beforeEach(async function () {
+    Object.assign(this, await loadFixture(freshDeployEventTicket));
+  });
+
+it("Should fail when it's not admin", async function(){
+   await expect(this.eventTickets.setAdmin(this.firstSigner)).to.be.revertedWith("Not admin");     
+ });
+
+ it("should set the admin", async function(){
+  await this.eventTickets.connect(this.admin).setAdmin(this.firstSigner);
+  expect(await this.eventTickets.admin()).equals(this.firstSigner.address);
+});
+});
 
 });

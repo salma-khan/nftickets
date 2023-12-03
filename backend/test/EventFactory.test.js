@@ -15,13 +15,15 @@ describe("EventFactory", function () {
     const eventSymbol = "NFTSymb";
     const dateEvent = Math.floor(new Date().getTime() / 1000);
 
-    const [owner, other] = await ethers.getSigners();
+    const [owner, other, admin] = await ethers.getSigners();
     const EventFactory = await ethers.getContractFactory("EventFactory");
     const LinkToken = await ethers.getContractFactory("MockLinkToken");
     const Registrar = await ethers.getContractFactory("MockRegistrar");
+    const Registry = await ethers.getContractFactory("MockRegistry");
     const linkToken = await LinkToken.deploy();
     const registrar = await Registrar.deploy();
-    const eventFactory = await EventFactory.deploy(linkToken.target, registrar.target);
+    const registry = await Registry.deploy();
+    const eventFactory = await EventFactory.deploy(linkToken.target, registrar.target, registry.target);
 
 
     return { owner, eventFactory, eventName, eventSymbol, dateEvent, other };

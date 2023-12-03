@@ -12,6 +12,7 @@ const networks = {
   arbitrum_sepolia:{
     link_token:"0xb1D4538B4571d411F07960EF2838Ce337FE1E80E",
     registrar: "0x881918E24290084409DaA91979A30e6f0dB52eBe",
+    registry:"0x8194399B3f11fcA2E8cCEfc4c9A658c61B8Bf412",
     signer:"0x39B6c7af8192cF173119817246C789F2de5953A0"
   }
 }
@@ -22,39 +23,42 @@ async function main() {
   let signer = "";
   let link_token = "";
   let registrar = "";
+  let registry = "";
+  let mockLinkToken = "";
 
   if(hre.network.name =="arbitrum_sepolia"){
     signer = networks[hre.network.name].signer;
     link_token = networks[hre.network.name].link_token;
     registrar = networks[hre.network.name].registrar;
+    registry = networks[hre.network.name].registry;
     
   } else {
   const signers = await hre.ethers.getSigners();
    signer = signers[0];
    const MockLinkToken = await hre.ethers.getContractFactory('MockLinkToken');
    const MockRegistrar = await hre.ethers.getContractFactory('MockRegistrar');
+   const MockRegistry = await hre.ethers.getContractFactory('MockRegistry');
    const mockLinkToken = await MockLinkToken.deploy();
    const mockregistrar = await MockRegistrar.deploy();
+   const mockregistry = await MockRegistry.deploy();
    link_token = mockLinkToken.target;
    registrar = mockregistrar.target;
+   registry = mockregistry.target;
   }
 
   const eventFactory = await EventFactory.deploy(link_token,
-  registrar);
+  registrar,registry);
   await eventFactory.waitForDeployment();
   
   const linkContract = await hre.ethers.getContractAt(LINK_TOKEN_ABI,link_token);
   
-  const decimalLink = await linkContract.decimals();
-
-
-  let transaction = await linkContract.transfer(eventFactory.target, hre.ethers.parseUnits("5", decimalLink));
+  let decimal = await linkContract.decimals();
+  let transaction = await linkContract.transfer(eventFactory.target, hre.ethers.parseUnits("5", decimal));
   await transaction.wait(1);
 
   console.log("Event factory deployed "+ eventFactory.target+" With balance "+  await linkContract.balanceOf(eventFactory.target));
 
-
-
+ 
 }
 
 main().catch((error) =>
