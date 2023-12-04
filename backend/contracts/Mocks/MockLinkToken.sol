@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-
-
 contract MockLinkToken {
     event LinkTransferred(uint256 amount);
     event Approved();

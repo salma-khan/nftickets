@@ -58,8 +58,12 @@ contract EventTickets is
     constructor(
         string memory _tokenName,
         string memory _tokenSymbol,
-        uint256 _eventDate, address _admin
+        uint256 _eventDate, address _admin, Category[] memory  _categories
     ) ERC721(_tokenName, _tokenSymbol) Ownable(msg.sender) {
+        require(_categories.length < MAX_CATEGORY, "8 categories max");
+        for (uint32 i = 0; i < _categories.length; i++) {
+            eventCategories.push(_categories[i]);
+        }
         eventDate = _eventDate;
         admin = _admin;
     }
@@ -88,17 +92,8 @@ contract EventTickets is
         _;
     }
 
-    function categories(
-        Category[] memory _categories
-    ) external onlyOwner requireSaleIsNotOpen {
-        require(_categories.length < MAX_CATEGORY, "8 categories max");
-        for (uint32 i = 0; i < _categories.length; i++) {
-            eventCategories.push(_categories[i]);
-        }
-    }
 
     function startSell() external onlyOwner requireSaleIsNotOpen {
-        require(eventCategories.length > 0, "No categories provided");
         eventStatus = EventStatus.TICKET_SALES_OPEN;
         emit SellingStarted();
     }

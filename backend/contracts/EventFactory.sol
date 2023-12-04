@@ -18,6 +18,14 @@ contract EventFactory is Ownable {
     address  public registrar;
     address public registry;
     address admin;
+    uint8 constant MAX_CATEGORY = 8;
+
+    struct Category {
+        string category;
+        uint32 price;
+        uint32 quantity;
+        uint32 thresholdResalePrice;
+    }
 
 
 
@@ -31,15 +39,18 @@ contract EventFactory is Ownable {
     function create(
         string calldata eventName,
         string calldata eventSymbol,
-        uint256 date
+        uint256 date,
+        Category[] memory  categories
+
     ) external {
+        require(categories.length < MAX_CATEGORY, "8 categories max");
         bytes32 _salt = keccak256(abi.encodePacked(eventName));
         address addr = Create2.deploy(
             0,
             _salt,
             abi.encodePacked(
                 type(EventTickets).creationCode,
-                abi.encode(eventName, eventSymbol, date, address(this))
+                abi.encode(eventName, eventSymbol, date, address(this), categories)
             )
         );
 

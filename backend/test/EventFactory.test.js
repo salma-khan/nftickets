@@ -29,7 +29,7 @@ describe("EventFactory", function () {
     return { owner, eventFactory, eventName, eventSymbol, dateEvent, other };
   }
 
-  describe("Deployment", function () {
+  describe("Create event", function () {
     it("should be deployed", async function () {
       const { eventFactory } = await loadFixture(deployEventFactory);
       expect(eventFactory.target).not.equal(0);
@@ -39,11 +39,11 @@ describe("EventFactory", function () {
 
   describe("Deploy", function () {
     it("Should emit an event EventCreated", async function () {
-
+      const categories = [["Gold", 10, 20, 100]];
       const { eventFactory, eventName, eventSymbol, dateEvent, owner } = await loadFixture(deployEventFactory);
 
 
-      let tx = await eventFactory.create(eventName, eventSymbol, dateEvent);
+      let tx = await eventFactory.create(eventName, eventSymbol, dateEvent, categories);
       await tx.wait();
 
       const filter = eventFactory.filters.EventCreated();
@@ -54,10 +54,11 @@ describe("EventFactory", function () {
     });
 
     it("Should emit an event EventRegistered", async function () {
+      const categories = [["Gold", 10, 20, 100]];
 
       const { eventFactory, eventName, eventSymbol, dateEvent } = await loadFixture(deployEventFactory);
 
-      let tx = await eventFactory.create(eventName, eventSymbol, dateEvent);
+      let tx = await eventFactory.create(eventName, eventSymbol, dateEvent, categories);
       await tx.wait();
      
       const filter = eventFactory.filters.EventRegistered();
@@ -68,19 +69,33 @@ describe("EventFactory", function () {
 
 
     it("Should revert if UpkeepId is 0", async function () {
+      const categories = [["Gold", 10, 20, 100]];
       const { eventFactory, eventName, eventSymbol, dateEvent } = await loadFixture(deployEventFactory);
       const MockRegistrarError = await ethers.getContractFactory("MockRegistrarError");
       const mockRegistrarError=  await MockRegistrarError.deploy();
       eventFactory.setRegistrar(mockRegistrarError.target);
-      await expect( eventFactory.create(eventName, eventSymbol, dateEvent)).to.be.reverted;
+      await expect( eventFactory.create(eventName, eventSymbol, dateEvent, categories)).to.be.reverted;
+      
+
+    });
+
+    it("Should revert there is mor than 8 categories", async function () {
+   
+      const { eventFactory, eventName, eventSymbol, dateEvent } = await loadFixture(deployEventFactory);
+      const MockRegistrarError = await ethers.getContractFactory("MockRegistrarError");
+      const mockRegistrarError=  await MockRegistrarError.deploy();
+      eventFactory.setRegistrar(mockRegistrarError.target);
+      const categories = Array.from({ length: 9 }, () => ['cat', 10, 12, 100]);
+      await expect( eventFactory.create(eventName, eventSymbol, dateEvent, categories)).to.be.reverted;
       
 
     });
 
 
     it("should transfer the contract to the original owner", async function () {
+      const categories = [["Gold", 10, 20, 100]];
       const { eventFactory, eventName, eventSymbol, dateEvent, owner } = await loadFixture(deployEventFactory);
-      let tx = await eventFactory.create(eventName, eventSymbol, dateEvent);
+      let tx = await eventFactory.create(eventName, eventSymbol, dateEvent, categories);
       await tx.wait();
       const filter = eventFactory.filters.EventCreated();
       const events = await eventFactory.queryFilter(filter);

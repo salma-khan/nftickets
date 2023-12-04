@@ -19,12 +19,15 @@ describe("EventTickets", function () {
 
     const EVENT_NAME = "NFTTest";
     const EVENT_SYMBOL = "NFTSymb";
+    const CATEGORY_1_NAME = "Cat1";
+    const CATEGORY_2_NAME = "Cat2";
+    const categories = [[CATEGORY_1_NAME, 10, 20, 100], [CATEGORY_2_NAME, 20, 50, 150]];
     const EVENT_DATE = Math.floor(new Date(new Date().getTime() + (1 * 24 * 60 * 60 * 1000) / 1000));
     const EventTickets = await ethers.getContractFactory("EventTickets");
     const [ owner, firstSigner, secondSigner, forward, admin] = await ethers.getSigners();
-    const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL, EVENT_DATE, admin );
+    const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL, EVENT_DATE, admin , categories);
     await eventTickets.connect(admin).setForwarderAddress(forward);
-    return { owner, eventTickets, EVENT_NAME, EVENT_SYMBOL, EVENT_DATE, firstSigner, forward , admin};
+    return { owner, eventTickets, EVENT_NAME, EVENT_SYMBOL, EVENT_DATE, firstSigner, forward , admin, categories};
 
   }
 
@@ -40,9 +43,8 @@ describe("EventTickets", function () {
 
     const EventTickets = await ethers.getContractFactory("EventTickets");
     const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL,
-      EVENT_DATE, admin);
+      EVENT_DATE, admin, categories);
     await eventTickets.connect(admin).setForwarderAddress(forward);
-    await eventTickets.categories(categories);
     await eventTickets.startSell();
     return { eventTickets, CATEGORY_1_NAME, CATEGORY_2_NAME };
   }
@@ -60,12 +62,10 @@ describe("EventTickets", function () {
 
     const EventTickets = await ethers.getContractFactory("EventTickets");
     const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL,
-      EVENT_DATE, admin);
+      EVENT_DATE, admin,categories);
      
       await eventTickets.connect(admin).setForwarderAddress(forward);
     const tokenId = ethers.keccak256(ethers.toUtf8Bytes('Cat11'))
-
-    await eventTickets.categories(categories);
     await eventTickets.startSell();
     await eventTickets.connect(firstSigner).buy(1, CATEGORY_1_NAME, "http://tes.com", { value: ethers.parseUnits("10", "wei") });
 
@@ -76,52 +76,18 @@ describe("EventTickets", function () {
 
   describe("Deployment", function () {
     it("should be deployed with right values", async function () {
-      const { eventTickets, EVENT_NAME, EVENT_SYMBOL, EVENT_DATE } = await loadFixture(freshDeployEventTicket);
+      const { eventTickets, EVENT_NAME, EVENT_SYMBOL, EVENT_DATE, categories } = await loadFixture(freshDeployEventTicket);
       expect(await eventTickets.name()).is.equal(EVENT_NAME);
       expect(await eventTickets.symbol()).is.equal(EVENT_SYMBOL);
       expect(await eventTickets.date()).is.equal(EVENT_DATE);
       expect(await eventTickets.eventStatus()).is.equal(0);
+      const resultCat = await eventTickets.getCategories()
+      expect(resultCat[0][0]).to.be.equals("Cat1");
 
     });
   });
 
-  describe("Add categories", function () {
-
-    beforeEach(async function () {
-      Object.assign(this, await loadFixture(freshDeployEventTicket));
-    });
-
-    it("should fails when sell is started", async function () {
-      await this.eventTickets.categories([['CAT1', 10, 10, 100]]);
-      await this.eventTickets.startSell();
-      await expect(this.eventTickets.categories([['CAT2', 10, 10, 100]])).to.be.revertedWith("Sale is started");
-
-    });
-
-    it("Should fail when categories more than 8", async function () {
-      const categories = Array.from({ length: 9 }, () => ['cat', 10, 12, 100]);
-      await expect(this.eventTickets.categories(categories)).to.be.revertedWith("8 categories max");
-
-    });
-
-    it("Should fail when it not an owner", async function () {
-
-      const addCat = [['Gold', 10, 20, 100], ['Silver', 40, 34, 100]];
-      await expect(this.eventTickets.connect(this.firstSigner).categories(addCat)).to.be.reverted;
-    });
-
-    it("Should successfully create categories", async function () {
-
-      const addCat = [['Gold', 10, 20, 100], ['Silver', 40, 34, 100]];
-      await this.eventTickets.categories(addCat);
-      let categories = await this.eventTickets.getCategories();
-
-      expect(categories.length).equal(addCat.length);
-      expect(categories.every((value, index) => value === addCat[index]));
-    });
-  });
-
-
+ 
   describe("Start sell", function () {
     beforeEach(async function () {
       Object.assign(this, await loadFixture(freshDeployEventTicket));
@@ -131,17 +97,13 @@ describe("EventTickets", function () {
       await expect(this.eventTickets.connect(this.firstSigner).startSell()).to.be.reverted;
     });
 
-    it("Should fail when categories not provided", async function () {
-      await expect(this.eventTickets.startSell()).to.be.revertedWith("No categories provided");
-    });
+
 
     it("Should emit an event", async function () {
-      await this.eventTickets.categories([['Cat', 10, 100, 200]]);
       expect(await this.eventTickets.startSell()).to.emit('SellingStarted');
     });
 
     it("Should change the state to SALES_OPEN", async function () {
-      await this.eventTickets.categories([['Cat', 10, 100, 200]]);
       await this.eventTickets.startSell()
       expect(await this.eventTickets.eventStatus()).to.be.equal(1);
     });
@@ -233,6 +195,7 @@ describe("EventTickets", function () {
       await expect(this.eventTickets.connect(this.firstSigner).sell(this.tokenId, 99)).to.be.revertedWith("Sale is not open")
 
     });
+
 
     it("Should put in second market", async function () {
       await this.eventTickets.connect(this.firstSigner).sell(this.tokenId, 100);
@@ -337,7 +300,6 @@ it("Should fail when it's not admin", async function(){
 });
 
 
-
 });
 
 describe("setAdmin", function () {
@@ -352,6 +314,31 @@ it("Should fail when it's not admin", async function(){
  it("should set the admin", async function(){
   await this.eventTickets.connect(this.admin).setAdmin(this.firstSigner);
   expect(await this.eventTickets.admin()).equals(this.firstSigner.address);
+});
+});
+
+describe("widhdraw", function () {
+  beforeEach(async function () {
+    Object.assign(this, await loadFixture(readyToPutInSecondMarket));
+  });
+
+it("Shoud fail when it's not owner", async function(){
+   await expect(this.eventTickets.connect(this.firstSigner).withdraw()).to.be.reverted;     
+ });
+
+ it("Should fail if before the event", async function(){
+  await expect(this.eventTickets.withdraw()).to.be.revertedWith("Event did not occures"); 
+});
+it("Widhdraw after the event", async function(){
+  let balance = await ethers.provider.getBalance(this.eventTickets);
+  expect(balance).is.greaterThan(0);
+
+  await this.eventTickets.connect(this.forward).performUpkeep("0x");
+  await this.eventTickets.withdraw();
+  let balanceAfter = await ethers.provider.getBalance(this.eventTickets);
+  expect(balanceAfter).is.equal(0);
+
+
 });
 });
 
