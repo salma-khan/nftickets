@@ -1,28 +1,32 @@
 'use client'
-import SideBar from "@/Components/SideBar";
+import Connect from "@/Components/Connect";
 import Link from "next/link";
-import { useAccount } from 'wagmi'
-
-
-
+import { useAccount } from "wagmi";
 
 export default function SellerLayout({ children }) {
-    const { isConnected } = useAccount();
-    if (!isConnected) {
-        return (<div className="align-center">Please connect to your wallet</div>)
-    } else {
-
-        return (
+    const { isConnected} = useAccount();
+    return (
+        <>
+        {!isConnected? <div className=" flex justify-center mt-20"> <Connect/></div> :(
+        <div className="flex flex-row p-20">
+        <div className="basis-1/4 flex-col p-10">
             <div>
-                 <SideBar/>
-                <div class="p-4 sm:ml-64">
-                      {children}
-                </div>
-            </div>
+        <Link href="/Sellers/CreateEvent/Event" >
+            <span className="text-2xl  text-yellow-500 hover:text-white">Créer un évènement</span>
+        </Link>
+        </div>
+        <div className="mt-10  mr-10">
+        <Link href="/Sellers/CreateEvent" >
+            <span className="text-2xl   text-yellow-500 hover:text-white">Mes évènements</span>
+        </Link>
+        </div>
 
-
-        )
-    }
-
-
-}
+        </div>
+        <div className="basis-3/4">
+              {children}
+        </div>
+        </div>)}
+    </>
+           
+    )
+  }

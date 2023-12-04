@@ -1,32 +1,6 @@
-import Link from "next/link";
-
-
-
-
-
-const CreateEvent = () => {
-
+export default function CreateEvent() {
     return (
-
-
-
-
-
-
-
-
-
-<></>
-
-       
-
-
-    )
-
-
-
-
-
+        <div>
+        </div>
+    );
 }
-
-export default CreateEvent;

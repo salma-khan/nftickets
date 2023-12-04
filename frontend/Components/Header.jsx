@@ -3,23 +3,16 @@ import Link from "next/link";
 
 const Header = () => {
     return (
-        <header className="bg-black p-3">
-            <div className="flex justify-between items-start">
-                <div><p><img className=" max-w-xs" src="NFtickets.png" alt="image description"></img></p>
-                </div>
-                
-                <div className="flex  items-center">
-                    <div >
-                    <Link className="text-base text-gray-900 dark:text-white p-5" href="/Events">
-                    Events
-                    </Link>
-                    <Link  className="text-base text-gray-900 dark:text-white p-10 "  href="/Sellers/createEvent/Event">
-                      Sell
-                    </Link></div>
-                    <ConnectButton />
-                </div>
-            </div>
-        </header>
+        <div className="flex justify-between">
+        <header className="bg-black p-10 mx-4 space-y-2">
+            <h1 className="text-pink-700 text-5xl font-bold">
+        NFTickets
+    </h1> 
+    <b>Feel the Beat Live</b>
+     </header>
+     <div className="p-10"> <ConnectButton/></div>
+
+     </div>
     )
 
 }

@@ -1,9 +1,17 @@
+'use client'
+import Connect from "@/Components/Connect";
+import { useState } from "react";
+import { useAccount } from "wagmi";
 
-export default function EventCreation() {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-between p-24">
-       MyEvents
-      </div>
+export default function Seller() {
+
+  const { isConnected} = useAccount();
+
+
+    return (<div className="container">
+    
+       </div>
     )
   }
+  
   

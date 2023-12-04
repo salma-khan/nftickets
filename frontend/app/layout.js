@@ -38,6 +38,8 @@ const wagmiConfig = createConfig({
 })
 
 
+
+
 const inter = Inter({ subsets: ['latin'] })
 
 export default function RootLayout({ children }) {
@@ -45,12 +47,24 @@ export default function RootLayout({ children }) {
 
     <html lang="en">
       <body className={inter.className}>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/datepicker.min.js"></script>
         <WagmiConfig config={wagmiConfig}>
           <RainbowKitProvider chains={chains}>
-            <Header/>
-            <main>{children}</main>
+            <main>
+              <div className="flex flex-row">
+                <div className="basis-3/4">
+                  <Header/>
+                  <div className='h-screen'>
+                  {children}
+                  </div>
+                </div>
+                <div className=" container basis-1/4 bg-music-pattern bg-cover"/>
+                </div>
+
+            </main>
           </RainbowKitProvider>
         </WagmiConfig>
+        
       </body>
 
     </html>
