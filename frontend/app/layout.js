@@ -14,6 +14,9 @@ import {
 } from 'wagmi/chains';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
+import { ContractContextProvider } from './Contract/FactoryContractContext';
+
+
 
 
 
@@ -32,13 +35,11 @@ const { connectors } = getDefaultWallets({
 });
 
 const wagmiConfig = createConfig({
-  autoConnect: false,
+  autoConnect: true,
   connectors,
-  publicClient
+  publicClient,
+  persister: null
 })
-
-
-
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -50,6 +51,8 @@ export default function RootLayout({ children }) {
       <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/datepicker.min.js"></script>
         <WagmiConfig config={wagmiConfig}>
           <RainbowKitProvider chains={chains}>
+            <ContractContextProvider>
+    
             <main>
               <div className="flex flex-row">
                 <div className="basis-3/4">
@@ -62,6 +65,7 @@ export default function RootLayout({ children }) {
                 </div>
 
             </main>
+            </ContractContextProvider>
           </RainbowKitProvider>
         </WagmiConfig>
         

@@ -24,7 +24,7 @@ async function main() {
   let link_token = "";
   let registrar = "";
   let registry = "";
-  let mockLinkToken = "";
+
 
   if(hre.network.name =="arbitrum_sepolia"){
     signer = networks[hre.network.name].signer;

@@ -19,15 +19,17 @@ describe("EventTickets", function () {
 
     const EVENT_NAME = "NFTTest";
     const EVENT_SYMBOL = "NFTSymb";
+    const EVENT_DESC = "DESC";
+    const EVENT_LOCAL = "LOCAL";
     const CATEGORY_1_NAME = "Cat1";
     const CATEGORY_2_NAME = "Cat2";
     const categories = [[CATEGORY_1_NAME, 10, 20, 100], [CATEGORY_2_NAME, 20, 50, 150]];
     const EVENT_DATE = Math.floor(new Date(new Date().getTime() + (1 * 24 * 60 * 60 * 1000) / 1000));
     const EventTickets = await ethers.getContractFactory("EventTickets");
     const [ owner, firstSigner, secondSigner, forward, admin] = await ethers.getSigners();
-    const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL, EVENT_DATE, admin , categories);
+    const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL, [EVENT_DATE,  EVENT_DESC, EVENT_LOCAL], admin , categories);
     await eventTickets.connect(admin).setForwarderAddress(forward);
-    return { owner, eventTickets, EVENT_NAME, EVENT_SYMBOL, EVENT_DATE, firstSigner, forward , admin, categories};
+    return { owner, eventTickets, EVENT_NAME, EVENT_SYMBOL, EVENT_DATE, firstSigner, forward , admin, categories, EVENT_DESC, EVENT_LOCAL};
 
   }
 
@@ -35,15 +37,17 @@ describe("EventTickets", function () {
 
     const EVENT_NAME = "NFTTest";
     const EVENT_SYMBOL = "NFTSymb";
+    const EVENT_DESC = "DESC";
+    const EVENT_LOCAL = "LOCAL";
     const EVENT_DATE = Math.floor(new Date(new Date().getTime() + (1 * 24 * 60 * 60 * 1000) / 1000));
     const CATEGORY_1_NAME = "Cat1";
+  
     const CATEGORY_2_NAME = "Cat2";
     const categories = [[CATEGORY_1_NAME, 10, 20, 100], [CATEGORY_2_NAME, 20, 50, 150]];
     const [ owner, firstSigner, secondSigner, forward, admin] = await ethers.getSigners();
 
     const EventTickets = await ethers.getContractFactory("EventTickets");
-    const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL,
-      EVENT_DATE, admin, categories);
+    const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL, [EVENT_DATE,  EVENT_DESC, EVENT_LOCAL], admin , categories);
     await eventTickets.connect(admin).setForwarderAddress(forward);
     await eventTickets.startSell();
     return { eventTickets, CATEGORY_1_NAME, CATEGORY_2_NAME };
@@ -54,6 +58,8 @@ describe("EventTickets", function () {
 
     const EVENT_NAME = "NFTTest";
     const EVENT_SYMBOL = "NFTSymb";
+    const EVENT_DESC = "DESC";
+    const EVENT_LOCAL = "LOCAL";
     const EVENT_DATE = Math.floor(new Date(new Date().getTime() + (1 * 24 * 60 * 60 * 1000) / 1000));
     const CATEGORY_1_NAME = "Cat1";
     const CATEGORY_2_NAME = "Cat2";
@@ -61,8 +67,7 @@ describe("EventTickets", function () {
     const [ owner, firstSigner, secondSigner, forward, admin] = await ethers.getSigners();
 
     const EventTickets = await ethers.getContractFactory("EventTickets");
-    const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL,
-      EVENT_DATE, admin,categories);
+    const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL, [EVENT_DATE,  EVENT_DESC, EVENT_LOCAL], admin , categories);
      
       await eventTickets.connect(admin).setForwarderAddress(forward);
     const tokenId = ethers.keccak256(ethers.toUtf8Bytes('Cat11'))
@@ -76,11 +81,13 @@ describe("EventTickets", function () {
 
   describe("Deployment", function () {
     it("should be deployed with right values", async function () {
-      const { eventTickets, EVENT_NAME, EVENT_SYMBOL, EVENT_DATE, categories } = await loadFixture(freshDeployEventTicket);
+      const { eventTickets, EVENT_NAME, EVENT_SYMBOL, EVENT_DATE, EVENT_DESC, EVENT_LOCAL } = await loadFixture(freshDeployEventTicket);
       expect(await eventTickets.name()).is.equal(EVENT_NAME);
       expect(await eventTickets.symbol()).is.equal(EVENT_SYMBOL);
-      expect(await eventTickets.date()).is.equal(EVENT_DATE);
-      expect(await eventTickets.eventStatus()).is.equal(0);
+      const eventMeta = await eventTickets.eventMeta();
+      expect(eventMeta[0]).is.equal(EVENT_DATE);
+      expect(eventMeta[1]).is.equal(EVENT_DESC);
+      expect(eventMeta[2]).is.equal(EVENT_LOCAL);
       const resultCat = await eventTickets.getCategories()
       expect(resultCat[0][0]).to.be.equals("Cat1");
 

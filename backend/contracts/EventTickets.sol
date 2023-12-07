@@ -43,8 +43,15 @@ contract EventTickets is
         uint32 price;
     }
 
-    uint256 eventDate;
 
+    struct EventMeta{
+        uint256 date;
+        string desc;
+        string location;
+       
+    }
+
+    
     mapping(string => mapping(uint32 => bool)) mintedSeat;
 
     mapping(uint256 => uint8) tokenIdsPerCategories;
@@ -54,18 +61,20 @@ contract EventTickets is
     Category[] eventCategories;
 
     EventStatus public eventStatus;
+    EventMeta public eventMeta;
 
     constructor(
         string memory _tokenName,
         string memory _tokenSymbol,
-        uint256 _eventDate, address _admin, Category[] memory  _categories
+        EventMeta memory  _eventMeta , address _admin, Category[] memory  _categories
     ) ERC721(_tokenName, _tokenSymbol) Ownable(msg.sender) {
         require(_categories.length < MAX_CATEGORY, "8 categories max");
         for (uint32 i = 0; i < _categories.length; i++) {
             eventCategories.push(_categories[i]);
         }
-        eventDate = _eventDate;
+        eventMeta = _eventMeta;
         admin = _admin;
+
     }
 
     modifier requireSaleIsNotOpen() {
@@ -154,7 +163,7 @@ contract EventTickets is
     function checkUpkeep(
         bytes calldata
     ) external view override returns (bool upkeepNeeded, bytes memory) {
-        uint timesUp =  eventDate + 3 hours;
+        uint timesUp =  eventMeta.date + 3 hours;
        upkeepNeeded =  block.timestamp> timesUp;
     }
 
@@ -195,9 +204,7 @@ contract EventTickets is
         revert("Category unknown");
     }
 
-    function date() external view returns (uint256) {
-        return eventDate;
-    }
+  
 
     function getCategories() external view returns (Category[] memory) {
         return eventCategories;

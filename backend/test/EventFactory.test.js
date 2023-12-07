@@ -13,6 +13,8 @@ describe("EventFactory", function () {
 
     const eventName = "NFTTest";
     const eventSymbol = "NFTSymb";
+    const eventDec = "Desc";
+    const eventLocation = "loca";
     const dateEvent = Math.floor(new Date().getTime() / 1000);
 
     const [owner, other, admin] = await ethers.getSigners();
@@ -26,7 +28,7 @@ describe("EventFactory", function () {
     const eventFactory = await EventFactory.deploy(linkToken.target, registrar.target, registry.target);
 
 
-    return { owner, eventFactory, eventName, eventSymbol, dateEvent, other };
+    return { owner, eventFactory, eventName, eventSymbol, dateEvent, other, eventDec, eventLocation };
   }
 
   describe("Create event", function () {
@@ -37,13 +39,13 @@ describe("EventFactory", function () {
   });
 
 
-  describe("Deploy", function () {
+  describe("Create", function () {
     it("Should emit an event EventCreated", async function () {
       const categories = [["Gold", 10, 20, 100]];
-      const { eventFactory, eventName, eventSymbol, dateEvent, owner } = await loadFixture(deployEventFactory);
+      const { eventFactory, eventName, eventSymbol, dateEvent, owner, eventDec, eventLocation } = await loadFixture(deployEventFactory);
 
 
-      let tx = await eventFactory.create(eventName, eventSymbol, dateEvent, categories);
+      let tx = await eventFactory.create(eventName, eventSymbol, dateEvent, eventDec, eventLocation,categories);
       await tx.wait();
 
       const filter = eventFactory.filters.EventCreated();
@@ -56,9 +58,9 @@ describe("EventFactory", function () {
     it("Should emit an event EventRegistered", async function () {
       const categories = [["Gold", 10, 20, 100]];
 
-      const { eventFactory, eventName, eventSymbol, dateEvent } = await loadFixture(deployEventFactory);
+      const { eventFactory, eventName, eventSymbol, dateEvent, eventDec, eventLocation } = await loadFixture(deployEventFactory);
 
-      let tx = await eventFactory.create(eventName, eventSymbol, dateEvent, categories);
+      let tx = await eventFactory.create(eventName, eventSymbol, dateEvent, eventDec, eventLocation, categories);
       await tx.wait();
      
       const filter = eventFactory.filters.EventRegistered();
@@ -70,23 +72,23 @@ describe("EventFactory", function () {
 
     it("Should revert if UpkeepId is 0", async function () {
       const categories = [["Gold", 10, 20, 100]];
-      const { eventFactory, eventName, eventSymbol, dateEvent } = await loadFixture(deployEventFactory);
+      const { eventFactory, eventName, eventSymbol, dateEvent, eventDec, eventLocation } = await loadFixture(deployEventFactory);
       const MockRegistrarError = await ethers.getContractFactory("MockRegistrarError");
       const mockRegistrarError=  await MockRegistrarError.deploy();
       eventFactory.setRegistrar(mockRegistrarError.target);
-      await expect( eventFactory.create(eventName, eventSymbol, dateEvent, categories)).to.be.reverted;
+      await expect( eventFactory.create(eventName, eventSymbol, dateEvent, eventDec, eventLocation,categories)).to.be.reverted;
       
 
     });
 
     it("Should revert there is mor than 8 categories", async function () {
    
-      const { eventFactory, eventName, eventSymbol, dateEvent } = await loadFixture(deployEventFactory);
+      const { eventFactory, eventName, eventSymbol, dateEvent, eventDec, eventLocation } = await loadFixture(deployEventFactory);
       const MockRegistrarError = await ethers.getContractFactory("MockRegistrarError");
       const mockRegistrarError=  await MockRegistrarError.deploy();
       eventFactory.setRegistrar(mockRegistrarError.target);
       const categories = Array.from({ length: 9 }, () => ['cat', 10, 12, 100]);
-      await expect( eventFactory.create(eventName, eventSymbol, dateEvent, categories)).to.be.reverted;
+      await expect( eventFactory.create(eventName, eventSymbol, dateEvent, eventDec, eventLocation, categories)).to.be.reverted;
       
 
     });
@@ -94,8 +96,8 @@ describe("EventFactory", function () {
 
     it("should transfer the contract to the original owner", async function () {
       const categories = [["Gold", 10, 20, 100]];
-      const { eventFactory, eventName, eventSymbol, dateEvent, owner } = await loadFixture(deployEventFactory);
-      let tx = await eventFactory.create(eventName, eventSymbol, dateEvent, categories);
+      const { eventFactory, eventName, eventSymbol, dateEvent, owner ,eventDec ,eventLocation } = await loadFixture(deployEventFactory);
+      let tx = await eventFactory.create(eventName, eventSymbol, dateEvent, eventDec, eventLocation,categories);
       await tx.wait();
       const filter = eventFactory.filters.EventCreated();
       const events = await eventFactory.queryFilter(filter);

@@ -72,9 +72,15 @@
 		"anonymous": false,
 		"inputs": [
 			{
-				"indexed": false,
+				"indexed": true,
 				"internalType": "address",
 				"name": "ticketAddress",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "owner",
 				"type": "address"
 			}
 		],
@@ -129,6 +135,33 @@
 				"internalType": "uint256",
 				"name": "date",
 				"type": "uint256"
+			},
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "category",
+						"type": "string"
+					},
+					{
+						"internalType": "uint32",
+						"name": "price",
+						"type": "uint32"
+					},
+					{
+						"internalType": "uint32",
+						"name": "quantity",
+						"type": "uint32"
+					},
+					{
+						"internalType": "uint32",
+						"name": "thresholdResalePrice",
+						"type": "uint32"
+					}
+				],
+				"internalType": "struct EventFactory.Category[]",
+				"name": "categories",
+				"type": "tuple[]"
 			}
 		],
 		"name": "create",
@@ -235,4 +268,4 @@
 		"type": "function"
 	}
 ]
-export  const factory_address = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+export  const factory_address = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";

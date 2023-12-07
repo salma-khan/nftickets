@@ -11,25 +11,32 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 
 contract EventFactory is Ownable {
-    event EventCreated(address ticketAddress);
+    event EventCreated(address indexed ticketAddress , address  indexed owner);
     event EventRegistered(uint upkeepID);
 
     address public  link;
     address  public registrar;
     address public registry;
     address admin;
-    uint8 constant MAX_CATEGORY = 8;
+
+  
+
 
     struct Category {
         string category;
         uint32 price;
         uint32 quantity;
-        uint32 thresholdResalePrice;
+        uint32 threshold;
     }
 
+    struct EventMeta{
+        uint256 date;
+        string desc;
+        string location;
+       
+    }
 
-
-    constructor(address _link, address _registrar, address _registry) Ownable(msg.sender){
+   constructor(address _link, address _registrar, address _registry) Ownable(msg.sender){
         link = _link;
         registrar = _registrar;
         registry = _registry;
@@ -37,35 +44,38 @@ contract EventFactory is Ownable {
     }
 
     function create(
-        string calldata eventName,
-        string calldata eventSymbol,
+        string calldata name,
+        string calldata symb,
         uint256 date,
-        Category[] memory  categories
+        string calldata desc,
+        string calldata location,
+        Category[] calldata categories
 
     ) external {
-        require(categories.length < MAX_CATEGORY, "8 categories max");
-        bytes32 _salt = keccak256(abi.encodePacked(eventName));
+        require(categories.length < 8, "8 categories max");
+        bytes32 _salt = keccak256(abi.encodePacked(name));
+        EventMeta  memory e = EventMeta(date, desc, location);
+        bytes memory code = abi.encodePacked(
+                type(EventTickets).creationCode,
+               abi.encode(name, symb, e, address(this), categories));
         address addr = Create2.deploy(
             0,
             _salt,
-            abi.encodePacked(
-                type(EventTickets).creationCode,
-                abi.encode(eventName, eventSymbol, date, address(this), categories)
-            )
+            code
         );
 
-       
-        uint keepUpId= register(addr, eventName);
+        uint keepUpId= register(addr);
         EventTickets(addr).setForwarderAddress(IKeeperRegistryMaster(registry).getForwarder(keepUpId));
         EventTickets(addr).setAdmin(admin);
 
         EventTickets(addr).transferOwnership(msg.sender);
-        emit EventCreated(addr);
+
+        emit EventCreated(addr, msg.sender);
     }
 
-    function register(address _deployedContract, string memory eventName) private  returns (uint) {
+    function register(address _deployedContract) private  returns (uint) {
         RegistrationParams memory registrationData = RegistrationParams(
-            eventName,
+            "Fact",
             hex"",
             _deployedContract,
             500000,
@@ -87,13 +97,15 @@ contract EventFactory is Ownable {
         return upkeepID;
     }
 
-    function setLinkAddress(address _link) external  onlyOwner{
+
+     function setLinkAddress(address _link) external  onlyOwner{
         link = _link;
     }
 
      function setRegistrar(address _registrar) external onlyOwner {
         registrar = _registrar;
     }
+
 }
 
 

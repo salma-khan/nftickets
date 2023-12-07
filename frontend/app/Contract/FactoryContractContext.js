@@ -17,47 +17,39 @@ const ContractContext = createContext();
 
 export const ContractContextProvider = ({ children }) => {
   const publicClient = usePublicClient();
+
+
+  const lastevents = async(ownerAddress) =>{ 
   
-
-  const blockNumber =async()=>{
-   return  publicClient.getBlockNumber()};
-
-  const lastevents = async() =>{ 
     const events = await publicClient.getLogs({
     address: factory_address,
-   event: parseAbiItem('event EventCreated(address)'),
-    fromBlock: 1n,
-    toBlock: 20n,
+    event: parseAbiItem('event EventCreated(address indexed ticketAddress, address indexed owner)'),
+    args: { 
+      owner:  ownerAddress
+    },
+    fromBlock: 0n,
+    toBlock: 'latest',
   })
-  console.log(events);
+  return events;
+
 
 }
 
-  const contractEvent = publicClient.watchContractEvent({
-    address: factory_address,
-    abi: abi,
-    eventName: 'EventCreated',
-    onLogs: logs => console.log(logs)
-   
-  })
 
 
 
-const create = async(eventName, eventDate) => {
+const create = async(eventName, date, categories ) => {
       const { request } = await prepareWriteContract({
             address: factory_address,
             abi: abi,
             functionName: "create",
-            args: [eventName, eventName, BigInt(eventDate)],
+            args: [eventName, eventName, BigInt(date), categories],
         });
         const { hash } = await writeContract(request)
 }
 
-useEffect(()=>{
-   lastevents();
-},[])
 
-const value = { create};
+const value = { create, lastevents};
 
   return (
     <ContractContext.Provider value={value}>

@@ -1,9 +1,13 @@
 
+'use client'
+import Connect from "@/Components/Connect";
 import Link from "next/link";
+import { useAccount } from "wagmi";
 
 export default function Home() {
-  return (
-    
+  const { isConnected} = useAccount();
+  return (<>
+    {!isConnected ? <div className=" flex justify-center mt-20"> <Connect /></div>:(
     <div className="flex p-20 flex-col">
       <div className="h-1/2 p-10 mt-20"> 
       <Link href="/Sellers" >
@@ -15,6 +19,7 @@ export default function Home() {
             <span className="text-3xl uppercase text-yellow-500 hover:text-white">Espace Acheteur</span>
         </Link>
         </div>    
-    </div>
+    </div>)}
+    </>
   )
 }

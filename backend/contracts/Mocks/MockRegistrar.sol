@@ -6,7 +6,7 @@ import "./../AutomationRegistrarInterface.sol";
 contract MockRegistrar is AutomationRegistrarInterface {
     function registerUpkeep(
         RegistrationParams calldata requestParams
-    ) external returns (uint256){
+    ) external pure  returns  (uint256){
        return 1;
      
     }
@@ -16,7 +16,7 @@ contract MockRegistrar is AutomationRegistrarInterface {
 contract MockRegistrarError is AutomationRegistrarInterface {
     function registerUpkeep(
         RegistrationParams calldata requestParams
-    ) external returns (uint256){
+    ) external pure returns (uint256){
       return 0;
     }
 
