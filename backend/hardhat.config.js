@@ -1,6 +1,9 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv/config");
 require("@nomicfoundation/hardhat-verify")
+require('@nomicfoundation/hardhat-ethers');
+require('hardhat-deploy-ethers');
+require("hardhat-deploy");
 
 const API_URL = process.env.API_URL || ""
 const PRIVATE_KEY = process.env.PRIVATE_KEY || ""
@@ -18,10 +21,30 @@ module.exports = {
       chainId: 421614,
 
     },
+
+    localhost: {
+      chainId: 31337,
+  },
   
   },
+
+  namedAccounts: {
+    deployer: {
+        default: 0
+    },
+},
   etherscan: {
-    apiKey: "5JCG5XU3WUSSFJ8YE8WRS96MQXRVKFA6HR"
+    apiKey: ETHERSCAN_API_KEY,
+    customChains: [
+      {
+        network: "arbitrum_sepolia",
+        chainId: 421614,
+        urls: {
+          apiURL: "https://api-sepolia.arbiscan.io/api",
+          browserURL: "https://sepolia.arbiscan.io/",
+        }
+      }
+    ]
   },
 
 

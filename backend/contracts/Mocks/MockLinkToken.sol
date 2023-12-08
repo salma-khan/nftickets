@@ -3,10 +3,13 @@
 pragma solidity ^0.8.20;
 
 contract MockLinkToken {
+
+    mapping (address => uint) balances ;
     event LinkTransferred(uint256 amount);
     event Approved();
 
     function transfer(address to, uint256 value) external returns (bool success){
+        balances[to]+=value;
         emit LinkTransferred(value);
     }
 
@@ -20,7 +23,7 @@ contract MockLinkToken {
 
    
     function balanceOf(address adr) external view returns( uint256) {
-        return 5;
+        return balances[adr];
     }
 
 }

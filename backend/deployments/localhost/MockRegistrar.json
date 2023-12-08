@@ -1,0 +1,112 @@
+{
+  "address": "0xcbEAF3BDe82155F56486Fb5a1072cb8baAf547cc",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "internalType": "bytes",
+              "name": "encryptedEmail",
+              "type": "bytes"
+            },
+            {
+              "internalType": "address",
+              "name": "upkeepContract",
+              "type": "address"
+            },
+            {
+              "internalType": "uint32",
+              "name": "gasLimit",
+              "type": "uint32"
+            },
+            {
+              "internalType": "address",
+              "name": "adminAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "uint8",
+              "name": "triggerType",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes",
+              "name": "checkData",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "triggerConfig",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "offchainConfig",
+              "type": "bytes"
+            },
+            {
+              "internalType": "uint96",
+              "name": "amount",
+              "type": "uint96"
+            }
+          ],
+          "internalType": "struct RegistrationParams",
+          "name": "requestParams",
+          "type": "tuple"
+        }
+      ],
+      "name": "registerUpkeep",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xd4d4083dedd246a9cb6da51d359d3b78727d83e198743619e981cd59864dabe3",
+  "receipt": {
+    "to": null,
+    "from": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "contractAddress": "0xcbEAF3BDe82155F56486Fb5a1072cb8baAf547cc",
+    "transactionIndex": 0,
+    "gasUsed": "96205",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x26a8a3f80fa54389f64138fd47e0e1a1ce669b1ff74c4a0f1682ec14c3d85669",
+    "transactionHash": "0xd4d4083dedd246a9cb6da51d359d3b78727d83e198743619e981cd59864dabe3",
+    "logs": [],
+    "blockNumber": 61,
+    "cumulativeGasUsed": "96205",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "88ca576966566c743c95b11188e5bcce",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.21+commit.d9974bed\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"components\":[{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"bytes\",\"name\":\"encryptedEmail\",\"type\":\"bytes\"},{\"internalType\":\"address\",\"name\":\"upkeepContract\",\"type\":\"address\"},{\"internalType\":\"uint32\",\"name\":\"gasLimit\",\"type\":\"uint32\"},{\"internalType\":\"address\",\"name\":\"adminAddress\",\"type\":\"address\"},{\"internalType\":\"uint8\",\"name\":\"triggerType\",\"type\":\"uint8\"},{\"internalType\":\"bytes\",\"name\":\"checkData\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"triggerConfig\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"offchainConfig\",\"type\":\"bytes\"},{\"internalType\":\"uint96\",\"name\":\"amount\",\"type\":\"uint96\"}],\"internalType\":\"struct RegistrationParams\",\"name\":\"requestParams\",\"type\":\"tuple\"}],\"name\":\"registerUpkeep\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/Mocks/MockRegistrar.sol\":\"MockRegistrar\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":1000},\"remappings\":[]},\"sources\":{\"contracts/AutomationRegistrarInterface.sol\":{\"content\":\"\\n// SPDX-License-Identifier: UNLICENSED\\npragma solidity ^0.8.20;\\n\\nstruct RegistrationParams {\\n    string name;\\n    bytes encryptedEmail;\\n    address upkeepContract;\\n    uint32 gasLimit;\\n    address adminAddress;\\n    uint8 triggerType;\\n    bytes checkData;\\n    bytes triggerConfig;\\n    bytes offchainConfig;\\n    uint96 amount;\\n   \\n}\\ninterface AutomationRegistrarInterface {\\n    function registerUpkeep (\\n        RegistrationParams calldata requestParams\\n    ) external  returns (uint256);\\n}\",\"keccak256\":\"0x9931092dde54025ca2ecb0aff50a690fad1a0c8916493917a6f5960b8dc6a0d8\",\"license\":\"UNLICENSED\"},\"contracts/Mocks/MockRegistrar.sol\":{\"content\":\"\\n// SPDX-License-Identifier: UNLICENSED\\npragma solidity ^0.8.20;\\nimport \\\"./../AutomationRegistrarInterface.sol\\\";\\n\\ncontract MockRegistrar is AutomationRegistrarInterface {\\n    function registerUpkeep(\\n        RegistrationParams calldata requestParams\\n    ) external pure  returns  (uint256){\\n       return 1;\\n     \\n    }\\n\\n}\\n\\ncontract MockRegistrarError is AutomationRegistrarInterface {\\n    function registerUpkeep(\\n        RegistrationParams calldata requestParams\\n    ) external pure returns (uint256){\\n      return 0;\\n    }\\n\\n}\\n\\n\",\"keccak256\":\"0x749054f720892cfdad444e72cdd153ddeebd432bd03ed18e6da8e26ab0ead134\",\"license\":\"UNLICENSED\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b5060c68061001f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633f678e1114602d575b600080fd5b603e60383660046050565b50600190565b60405190815260200160405180910390f35b600060208284031215606157600080fd5b813567ffffffffffffffff811115607757600080fd5b82016101408185031215608957600080fd5b939250505056fea26469706673582212209e20626e1ec630bdea81471be7c0649b2e400c5575539dcf85453cc4ed3d31db64736f6c63430008150033",
+  "deployedBytecode": "0x6080604052348015600f57600080fd5b506004361060285760003560e01c80633f678e1114602d575b600080fd5b603e60383660046050565b50600190565b60405190815260200160405180910390f35b600060208284031215606157600080fd5b813567ffffffffffffffff811115607757600080fd5b82016101408185031215608957600080fd5b939250505056fea26469706673582212209e20626e1ec630bdea81471be7c0649b2e400c5575539dcf85453cc4ed3d31db64736f6c63430008150033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}

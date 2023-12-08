@@ -19,8 +19,6 @@ contract EventFactory is Ownable {
     address public registry;
     address admin;
 
-  
-
 
     struct Category {
         string category;
@@ -33,6 +31,7 @@ contract EventFactory is Ownable {
         uint256 date;
         string desc;
         string location;
+        
        
     }
 
@@ -51,7 +50,7 @@ contract EventFactory is Ownable {
         string calldata location,
         Category[] calldata categories
 
-    ) external {
+    )  external  {
         require(categories.length < 8, "8 categories max");
         bytes32 _salt = keccak256(abi.encodePacked(name));
         EventMeta  memory e = EventMeta(date, desc, location);
@@ -69,7 +68,6 @@ contract EventFactory is Ownable {
         EventTickets(addr).setAdmin(admin);
 
         EventTickets(addr).transferOwnership(msg.sender);
-
         emit EventCreated(addr, msg.sender);
     }
 
