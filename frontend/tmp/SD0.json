@@ -1,0 +1,23 @@
+{
+  "description": "ddd",
+  "image": "https://gateway.pinata.cloud/ipfs/QmTW8ik3SCq33AH812hrkHCuUdMRZRwoAGWRi4S6qM8ADM",
+  "name": "TESt",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "SD"
+    },
+    {
+      "trait_type": "Place",
+      "value": "1"
+    },
+    {
+      "trait_type": "Date",
+      "value": "Fri Dec 08 2023 10:05:10 GMT+0100 (heure normale d’Europe centrale)"
+    },
+    {
+      "trait_type": "Localisation",
+      "value": "TESt"
+    }
+  ]
+}

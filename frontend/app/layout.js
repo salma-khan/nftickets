@@ -14,7 +14,7 @@ import {
 } from 'wagmi/chains';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
-import { ContractContextProvider } from './Contract/FactoryContractContext';
+import { ContractContextProvider } from './Contract/ContractContext';
 
 
 

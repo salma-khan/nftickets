@@ -1,6 +1,6 @@
 'use client'
 
-import { useContractContext } from "@/app/Contract/FactoryContractContext";
+import { useContractContext } from "@/app/Contract/ContractContext";
 import { useState } from "react";
 import DatePicker from "react-datepicker";
 
@@ -50,7 +50,8 @@ export default function Event() {
           const ipfsHash = await res.IpfsHash;
           setCid(ipfsHash);
 
-          factoryContext.create(eventName,startDate, [[categName,price, quanity, priceThreshold]]);
+          
+          factoryContext.create(eventName,startDate.getTime(),description, location, [[categName,price, quanity, priceThreshold]]);
 
       
         } catch (e) {

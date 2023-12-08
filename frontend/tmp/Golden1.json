@@ -1,0 +1,23 @@
+{
+  "description": "Music en scene",
+  "image": "https://gateway.pinata.cloud/ipfs/QmTW8ik3SCq33AH812hrkHCuUdMRZRwoAGWRi4S6qM8ADM",
+  "name": "Music en scene",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "Golden"
+    },
+    {
+      "trait_type": "Place",
+      "value": "2"
+    },
+    {
+      "trait_type": "Date",
+      "value": "Fri Dec 08 2023 11:09:38 GMT+0100 (heure normale d’Europe centrale)"
+    },
+    {
+      "trait_type": "Localisation",
+      "value": "Paris"
+    }
+  ]
+}

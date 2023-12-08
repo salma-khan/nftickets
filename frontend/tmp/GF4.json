@@ -1,0 +1,23 @@
+{
+  "description": "sss",
+  "image": "https://gateway.pinata.cloud/ipfs/QmTW8ik3SCq33AH812hrkHCuUdMRZRwoAGWRi4S6qM8ADM",
+  "name": "sss",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "GF"
+    },
+    {
+      "trait_type": "Place",
+      "value": "5"
+    },
+    {
+      "trait_type": "Date",
+      "value": "Fri Dec 08 2023 11:48:58 GMT+0100 (heure normale d’Europe centrale)"
+    },
+    {
+      "trait_type": "Localisation",
+      "value": "sss"
+    }
+  ]
+}
