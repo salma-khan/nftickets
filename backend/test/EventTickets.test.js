@@ -72,7 +72,34 @@ describe("EventTickets", function () {
       await eventTickets.connect(admin).setForwarderAddress(forward);
     const tokenId = ethers.keccak256(ethers.toUtf8Bytes('Cat11'))
     await eventTickets.startSell();
-    await eventTickets.connect(firstSigner).buy(1, CATEGORY_1_NAME, "http://tes.com", { value: ethers.parseUnits("10", "wei") });
+    await eventTickets.connect(firstSigner).buy(1, CATEGORY_1_NAME, "http://tes.com", { value: ethers.parseUnits("10", "ether") });
+
+    return { firstSigner, eventTickets, secondSigner, tokenId, forward };
+  }
+
+
+  async function seondmarketExchange() {
+
+    const EVENT_NAME = "NFTTest";
+    const EVENT_SYMBOL = "NFTSymb";
+    const EVENT_DESC = "DESC";
+    const EVENT_LOCAL = "LOCAL";
+    const EVENT_DATE = Math.floor(new Date(new Date().getTime() + (1 * 24 * 60 * 60 * 1000) / 1000));
+    const CATEGORY_1_NAME = "Cat1";
+    const CATEGORY_2_NAME = "Cat2";
+    const categories = [[CATEGORY_1_NAME, 10, 20, 100], [CATEGORY_2_NAME, 20, 50, 150]];
+    const [ owner, firstSigner, secondSigner, forward, admin] = await ethers.getSigners();
+
+    const EventTickets = await ethers.getContractFactory("EventTickets");
+    const eventTickets = await EventTickets.deploy(EVENT_NAME, EVENT_SYMBOL, [EVENT_DATE,  EVENT_DESC, EVENT_LOCAL], admin , categories);
+     
+      await eventTickets.connect(admin).setForwarderAddress(forward);
+    const tokenId = ethers.keccak256(ethers.toUtf8Bytes('Cat11'))
+    await eventTickets.startSell();
+    await eventTickets.connect(firstSigner).buy(1, CATEGORY_1_NAME, "http://tes.com", { value: ethers.parseUnits("10", "ether") });
+    await eventTickets.connect(firstSigner).sell(tokenId, 10);
+    await eventTickets.connect(secondSigner).buySecondMarket(tokenId, { value: ethers.parseUnits("10", "ether") });
+
 
     return { firstSigner, eventTickets, secondSigner, tokenId, forward };
   }
@@ -142,26 +169,26 @@ describe("EventTickets", function () {
 
     it("Should fail when the seat number is not valid", async function () {
 
-      await expect(this.eventTickets.buy(21, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "wei") })).to.be.revertedWith("Invalid seatNumber");
+      await expect(this.eventTickets.buy(21, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "ether") })).to.be.revertedWith("Invalid seatNumber");
     });
 
     it("Should fail when the seat number is not valid", async function () {
 
-      await expect(this.eventTickets.buy(0, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "wei") })).to.be.revertedWith("Invalid seatNumber");
+      await expect(this.eventTickets.buy(0, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "ether") })).to.be.revertedWith("Invalid seatNumber");
     });
 
 
     it("Should fail when the seat number is already taken", async function () {
 
-      await this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "wei") });
+      await this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "ether") });
 
-      await expect(this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "wei") })).to.be.revertedWith("Already taken");
+      await expect(this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "ether") })).to.be.revertedWith("Already taken");
     });
 
 
     it("Should Get a tokenId when minted successfully", async function () {
 
-      const tx = await this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "wei") });
+      const tx = await this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "ether") });
       await tx.wait();
       const filter = this.eventTickets.filters.MetadataUpdate();
       const events = await this.eventTickets.queryFilter(filter);
@@ -170,7 +197,7 @@ describe("EventTickets", function () {
 
     it("Should set the uri token", async function () {
 
-      await this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "wei") });
+      await this.eventTickets.buy(1, this.CATEGORY_1_NAME, 'http://test.com', { value: ethers.parseUnits("10", "ether") });
       expect(await this.eventTickets.tokenURI(ethers.keccak256(ethers.toUtf8Bytes('Cat11')))).to.be.equals('http://test.com');
     });
 
@@ -232,25 +259,24 @@ describe("EventTickets", function () {
     });
 
     it("Should fail when the token is not for sale", async function () {
-      await this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId, { value: ethers.parseUnits("10", "wei") });
-      await expect(this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId, { value: ethers.parseUnits("10", "wei") })).to.be.revertedWith("Token not for sale");
+      await this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId, { value: ethers.parseUnits("10", "ether") });
+      await expect(this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId, { value: ethers.parseUnits("10", "ether") })).to.be.revertedWith("Token not for sale");
 
     });
 
 
     it("Should transfer the token to the buyer", async function () {
-      await this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId, { value: ethers.parseUnits("10", "wei") });
+      await this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId, { value: ethers.parseUnits("10", "ether") });
       expect(await this.eventTickets.ownerOf(this.tokenId)).to.be.equals(this.secondSigner.address);
 
     });
 
 
     it("should transfer amount to the buyer", async function () {
-      const initialBalance = await ethers.provider.getBalance(this.firstSigner);
-      const initialBalanceSeller = await ethers.provider.getBalance(this.firstSigner);
-      await this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId, { value: ethers.parseEther("1") });
-      expect(await ethers.provider.getBalance(this.firstSigner)).is.greaterThan(initialBalance)
-      expect(await ethers.provider.getBalance(this.secondSigner)).is.lessThan(initialBalanceSeller)
+      const initialBalance = await this.eventTickets.secondMarketBalances(this.firstSigner)
+      
+      await this.eventTickets.connect(this.secondSigner).buySecondMarket(this.tokenId, { value: ethers.parseEther("15", "ether") });
+      expect(await this.eventTickets.secondMarketBalances(this.firstSigner)).is.equal(ethers.parseEther("15", "ether"));
     });
   });
 
@@ -347,6 +373,24 @@ it("Widhdraw after the event", async function(){
 
 
 });
+});
+
+
+describe("widhdrawSecondMarket", function () {
+  beforeEach(async function () {
+    Object.assign(this, await loadFixture(seondmarketExchange));
+  });
+
+it("should transfer the amount to the seller", async function(){
+  let balance = await this.eventTickets.secondMarketBalances(this.firstSigner);
+  expect(balance).equal(ethers.parseEther("10"));
+  await this.eventTickets.connect(this.firstSigner).witdhdrawSecondMarket();
+  expect(await this.eventTickets.secondMarketBalances(this.firstSigner)).equals(0);
+  
+  
+ });
+
+
 });
 
 });

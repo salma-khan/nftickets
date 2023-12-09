@@ -2,10 +2,9 @@ const {
   time,
   loadFixture,
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
-const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const { keccak256, } = require("ethers");
+
 
 describe("EventFactory", function () {
 
@@ -17,7 +16,7 @@ describe("EventFactory", function () {
     const eventLocation = "loca";
     const dateEvent = Math.floor(new Date().getTime() / 1000);
 
-    const [owner, other, admin] = await ethers.getSigners();
+    const [owner, other] = await ethers.getSigners();
     const EventFactory = await ethers.getContractFactory("EventFactory");
     const LinkToken = await ethers.getContractFactory("MockLinkToken");
     const Registrar = await ethers.getContractFactory("MockRegistrar");
@@ -28,13 +27,19 @@ describe("EventFactory", function () {
     const eventFactory = await EventFactory.deploy(linkToken.target, registrar.target, registry.target);
 
 
-    return { owner, eventFactory, eventName, eventSymbol, dateEvent, other, eventDec, eventLocation };
+    return { owner, eventFactory, eventName, eventSymbol, dateEvent, other, eventDec, eventLocation, linkToken };
   }
 
-  describe("Create event", function () {
+  describe("Deploy", function () {
     it("should be deployed", async function () {
       const { eventFactory } = await loadFixture(deployEventFactory);
       expect(eventFactory.target).not.equal(0);
+    });
+
+    it("Should be feeded with Link", async function () {
+      const { eventFactory, linkToken } = await loadFixture(deployEventFactory);
+      await linkToken.transfer(eventFactory.target, 10);
+      expect(await linkToken.balanceOf(eventFactory.target)).equal(10);
     });
   });
 

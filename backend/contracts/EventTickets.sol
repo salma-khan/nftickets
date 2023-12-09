@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity 0.8.20;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
@@ -12,7 +12,7 @@ contract EventTickets is
     Ownable
 {
     using Strings for uint256;
-    event SellingStarted();
+    event SellingStarted(address indexed eventAddress);
     event emitInSecondMarket(uint256);
 
     address public  forwarder;
@@ -27,10 +27,6 @@ contract EventTickets is
         uint32 thresholdResalePrice;
     }
 
-    enum TicketStatus {
-        ACTIVE,
-        DESACTIVATED
-    }
 
     enum EventStatus {
         TICKET_SALES_NOT_OPEN,
@@ -57,6 +53,8 @@ contract EventTickets is
     mapping(uint256 => uint8) tokenIdsPerCategories;
 
     mapping(uint256 => TokenForResale) public secondMarketToken;
+
+    mapping(address=>uint256) public secondMarketBalances;
 
     Category[] eventCategories;
 
@@ -104,7 +102,7 @@ contract EventTickets is
 
     function startSell() external onlyOwner requireSaleIsNotOpen {
         eventStatus = EventStatus.TICKET_SALES_OPEN;
-        emit SellingStarted();
+        emit SellingStarted(address(this));
     }
 
     function buy(
@@ -113,7 +111,7 @@ contract EventTickets is
         string memory _tokenUri
     ) public payable requireSaleIsOpen returns (uint256) {
         (Category memory cat, uint8 index) = getCategory(_category);
-        require(msg.value >= cat.price * 1 wei, "Not enought money");
+        require(msg.value >= cat.price * 1 ether, "Not enought money");
         require(_seat > 0 && _seat < cat.quantity, "Invalid seatNumber");
         require(!mintedSeat[_category][_seat], "Already taken");
 
@@ -150,14 +148,21 @@ contract EventTickets is
     ) external payable requireSaleIsOpen {
         require(secondMarketToken[tokenId].forSale, "Token not for sale");
         require(
-            msg.value >= secondMarketToken[tokenId].price * 1 wei,
+            msg.value >= secondMarketToken[tokenId].price * 1 ether,
             "Not enought money."
         );
         address tokenOwner = ownerOf(tokenId);
         delete secondMarketToken[tokenId];
-        _transfer(tokenOwner, msg.sender, tokenId);
-        (bool sent, ) = tokenOwner.call{value: msg.value}("");
-        require(sent, "Failed to perform transaction");
+         _transfer(tokenOwner, msg.sender, tokenId);
+        secondMarketBalances[tokenOwner]+=msg.value;
+    
+    }
+
+    function witdhdrawSecondMarket() external {
+        uint amount = secondMarketBalances[msg.sender];
+        secondMarketBalances[msg.sender] = 0;
+        (bool sent, ) = msg.sender.call{value: amount}("");
+        require(sent, "Failed to send Ether");
     }
 
     function checkUpkeep(

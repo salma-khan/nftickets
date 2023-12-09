@@ -3,15 +3,13 @@ const { network, ethers } = require("hardhat");
 const { networkConfig } = require("../helpers-hardhat-config");
 
 
-
-
 module.exports = async (hre) => {
   const { deploy } = hre.deployments;
   const { deployer } = await hre.getNamedAccounts();
   const chainId = network.config.chainId;
 
 
-  if (chainId == 421614) {
+  if (chainId != 31337) {
     signer = deployer;
     link_token = networkConfig[chainId].link_token;
     registrar = networkConfig[chainId].registrar;

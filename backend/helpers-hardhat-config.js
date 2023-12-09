@@ -15,7 +15,6 @@ module.exports ={
           registry: "0x8194399B3f11fcA2E8cCEfc4c9A658c61B8Bf412",
           signer: "0x39B6c7af8192cF173119817246C789F2de5953A0",
           blockConfirmation: "6",
-          blockNumber:""
           },
       }
 }
