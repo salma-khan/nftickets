@@ -76,6 +76,18 @@ const getMeta = async (contractAddress) => {
  
  
 }
+const getName = async (contractAddress) => {
+  const ret = await readContract({
+  address: contractAddress,
+  abi: abi_ticket,
+  functionName:  'name',
+});
+
+
+return    { name:ret, address: contractAddress};
+
+
+}
 
 const getStatus = async (contractAddress) => {
   const ret = await readContract({
@@ -122,7 +134,7 @@ const { hash } = await writeContract(request)
 
 
 
-const value = { create, lastevents,getMeta, getStatus, startSelling, meta,setMeta, status, setStatus,lastOpenSell};
+const value = { create, lastevents,getMeta, getStatus, startSelling, meta,setMeta, status, setStatus,lastOpenSell, getName};
 
   return (
     <ContractContext.Provider value={value}>

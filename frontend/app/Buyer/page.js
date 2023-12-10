@@ -12,13 +12,12 @@ export default function Buyer() {
 
 
     const contractFactoryContext = useContractContext();
-    const { address } = useAccount();
+
     const [eventRender, setEventRender] = useState([]);
     const [eventsMetada, setEventMetada] = useState([]);
     const [eventStatus, setEventStatus] = useState([]);
-    const [events, setEvents] = useState([]);
+    const[names, setNames] = useState([]);
     const [finish, setFinish]= useState(false);
-
 
 
     useEffect(()=>{
@@ -29,10 +28,8 @@ export default function Buyer() {
       
         fetch().then((receivedEvents)=>{
           let args = receivedEvents.map(element => element.args.eventAddress);
-        
             lookForEvent(args);
              
-      
         })
        
       
@@ -42,9 +39,10 @@ export default function Buyer() {
               await Promise.all(arg.map(async(e)=>{
                   const m = await  contractFactoryContext.getMeta(e);
                   const st = await contractFactoryContext.getStatus(e);
+                  const name = await contractFactoryContext.getName(e);
                   eventsMetada.push(m);
-                
                   eventStatus.push(st);
+                  names.push(name);
       
                  
       
@@ -71,7 +69,7 @@ export default function Buyer() {
           
           })
       
-          console.log(eventStatus);
+          console.log(names);
           eventStatus.forEach((m)=>{
                    let newEvents = events.map(el => {       
                       if(el.address===m.address){
@@ -84,6 +82,18 @@ export default function Buyer() {
                
           
           
+          })
+
+          names.forEach((n)=>{
+            let newEvents = events.map(el => {       
+                if(el.address===n.address){
+               
+                   return  {...el, name: n.name}
+                }
+                return el;}
+             )
+             events = newEvents;
+
           })
       
       
@@ -104,6 +114,7 @@ export default function Buyer() {
         <ul className="divide-y divide-gray-200">
             {eventRender.map((event, index) => (
                 <li className="py-2">
+                     <p className="text-white-600">Name : {event.name ? event.name : ""}</p>
                     <p className="text-white-600">Date : {event.date ? event.date : ""}</p>
                     <p className="text-white-600">Description : {event.desc ? event.desc : ""}</p>
                     <p className="text-white-600">Lieu : {event.location ? event.location : ""}</p>

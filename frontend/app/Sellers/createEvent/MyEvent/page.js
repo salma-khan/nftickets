@@ -17,12 +17,7 @@ const [finish, setFinish]= useState(false);
 const [eventRender, setEventRender] = useState([]);
 const [eventsMetada, setEventMetada] = useState([]);
 const [eventStatus, setEventStatus] = useState([]);
-
- 
- 
-
-
-
+const[names, setNames] = useState([]);
 
 
 useEffect(()=>{
@@ -49,9 +44,10 @@ useEffect(()=>{
         await Promise.all(arg.map(async(e)=>{
             const m = await  contractFactoryContext.getMeta(e);
             const st = await contractFactoryContext.getStatus(e);
+            const name = await contractFactoryContext.getName(e);
             eventsMetada.push(m);
-          
             eventStatus.push(st);
+            names.push(name);
 
            
 
@@ -78,7 +74,7 @@ useEffect(()=>{
     
     })
 
-    console.log(eventStatus);
+
     eventStatus.forEach((m)=>{
              let newEvents = events.map(el => {       
                 if(el.address===m.address){
@@ -92,6 +88,18 @@ useEffect(()=>{
     
     
     })
+
+    names.forEach((n)=>{
+        let newEvents = events.map(el => {       
+            if(el.address===n.address){
+           
+               return  {...el, name: n.name}
+            }
+            return el;}
+         )
+         events = newEvents;
+
+      })
 
 
     setEventRender(events);
@@ -124,6 +132,7 @@ return(<><div className="p-4">
 <ul className="divide-y divide-gray-200">
     {eventRender.map((event, index) => (
         <li key={index} className="py-2">
+             <p className="text-white-600">Name : {event.name?event.name:"" }</p>
             <p className="text-white-600">Date : {event.date?event.date:"" }</p>
             <p className="text-white-600">Description : {event.desc? event.desc :""}</p>
             <p className="text-white-600">Lieu : {event.location? event.location :""}</p>
