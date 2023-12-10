@@ -6,18 +6,23 @@ import { useContractContext } from "@/app/Contract/ContractContext";
 
 import { useEffect, useState } from "react";
 import Connect from "@/Components/Connect";
+import DynamicSelect from "@/Components/Select";
+import { useIpfContext } from "../IPFSContext/IpfsContext";
 
 export default function Buyer() {
     const { isConnected} = useAccount();
 
 
     const contractFactoryContext = useContractContext();
+    const ipfContext = useIpfContext();
 
     const [eventRender, setEventRender] = useState([]);
     const [eventsMetada, setEventMetada] = useState([]);
     const [eventStatus, setEventStatus] = useState([]);
     const[categories, setCategories] = useState([]);
     const[names, setNames] = useState([]);
+    const[seat, setSeat] = useState();
+
     
     const [finish, setFinish]= useState(false);
 
@@ -47,7 +52,6 @@ export default function Buyer() {
                   eventStatus.push(st);
                   names.push(name);
                   categories.push(cat);
-      
       
               }))
              setFinish(true);
@@ -120,7 +124,22 @@ export default function Buyer() {
       
       }, [finish])
 
+const  buy= async(addr, categorie, price) =>{
+   const ipfs = ipfContext.getItem(addr);
+   const tokenUri = `https://gateway.pinata.cloud/ipfs/${ipfs}/${categorie}${seat}.json`
+    console.log(tokenUri)
+    contractFactoryContext.buy(addr, seat,categorie,tokenUri , price);
+  
 
+
+}
+
+
+const handleOptionChange = (selectedValue) => {
+ 
+   setSeat(selectedValue);
+  
+  };
 
 
 
@@ -134,10 +153,10 @@ export default function Buyer() {
                     <p className="text-white-600">Date : {event.date ? event.date : ""}</p>
                     <p className="text-white-600">Description : {event.desc ? event.desc : ""}</p>
                     <p className="text-white-600">Lieu : {event.location ? event.location : ""}</p>
-                    <ul className="text-white-600">
+                    <ul className=" ftext-white-600">
                     
                      {event.categ? (event.categ.map((c,index)=>(
-                        <div>
+                        <div className=" flex flex-row  text-white-600 gap-6" >
                         <li>
                          <p className="text-white-600">Categorie  : {c.category ? c.category : ""}</p>
                          </li>
@@ -145,16 +164,23 @@ export default function Buyer() {
                          <li>
                          <p className="text-white-600">Prix en ether  : {c.price ? c.price : ""}</p>
                          </li>
+
+                            <li>
+                            <DynamicSelect length={c.quantity} onOptionChange={handleOptionChange} />
+                            </li>
+
+                         <button className="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded " onClick={(e=>buy(event.address, c.category, c.price))}>
+                        buy
+                    </button>
                          </div>
 
                          ))):(<></>)
                      }
 
+                     
                     </ul>
 
-                    <button className="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded ">
-                        buy a ticket
-                    </button>
+                   
 
                 </li>
             ))}

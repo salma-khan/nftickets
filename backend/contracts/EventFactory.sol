@@ -22,9 +22,9 @@ contract EventFactory is Ownable {
 
     struct Category {
         string category;
-        uint32 price;
+        uint256 price;
         uint32 quantity;
-        uint32 threshold;
+        uint256 threshold;
     }
 
     struct EventMeta{

@@ -154,9 +154,9 @@
 						"type": "string"
 					},
 					{
-						"internalType": "uint32",
+						"internalType": "uint256",
 						"name": "price",
-						"type": "uint32"
+						"type": "uint256"
 					},
 					{
 						"internalType": "uint32",
@@ -280,7 +280,7 @@
 ]
 
 
-export const  abi_ticket = [
+export const  abi_ticket =[
 	{
 		"inputs": [
 			{
@@ -328,9 +328,9 @@ export const  abi_ticket = [
 						"type": "string"
 					},
 					{
-						"internalType": "uint32",
+						"internalType": "uint256",
 						"name": "price",
-						"type": "uint32"
+						"type": "uint256"
 					},
 					{
 						"internalType": "uint32",
@@ -338,9 +338,9 @@ export const  abi_ticket = [
 						"type": "uint32"
 					},
 					{
-						"internalType": "uint32",
+						"internalType": "uint256",
 						"name": "thresholdResalePrice",
-						"type": "uint32"
+						"type": "uint256"
 					}
 				],
 				"internalType": "struct EventTickets.Category[]",
@@ -579,7 +579,14 @@ export const  abi_ticket = [
 	},
 	{
 		"anonymous": false,
-		"inputs": [],
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "eventAddress",
+				"type": "address"
+			}
+		],
 		"name": "SellingStarted",
 		"type": "event"
 	},
@@ -817,9 +824,9 @@ export const  abi_ticket = [
 						"type": "string"
 					},
 					{
-						"internalType": "uint32",
+						"internalType": "uint256",
 						"name": "price",
-						"type": "uint32"
+						"type": "uint256"
 					},
 					{
 						"internalType": "uint32",
@@ -827,9 +834,9 @@ export const  abi_ticket = [
 						"type": "uint32"
 					},
 					{
-						"internalType": "uint32",
+						"internalType": "uint256",
 						"name": "thresholdResalePrice",
-						"type": "uint32"
+						"type": "uint256"
 					}
 				],
 				"internalType": "struct EventTickets.Category[]",
@@ -983,6 +990,25 @@ export const  abi_ticket = [
 	{
 		"inputs": [
 			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "secondMarketBalances",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
 				"internalType": "uint256",
 				"name": "",
 				"type": "uint256"
@@ -996,9 +1022,9 @@ export const  abi_ticket = [
 				"type": "bool"
 			},
 			{
-				"internalType": "uint32",
+				"internalType": "uint256",
 				"name": "price",
-				"type": "uint32"
+				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
@@ -1012,9 +1038,9 @@ export const  abi_ticket = [
 				"type": "uint256"
 			},
 			{
-				"internalType": "uint32",
+				"internalType": "uint256",
 				"name": "price",
-				"type": "uint32"
+				"type": "uint256"
 			}
 		],
 		"name": "sell",
@@ -1156,6 +1182,13 @@ export const  abi_ticket = [
 			}
 		],
 		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "witdhdrawSecondMarket",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"

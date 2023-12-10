@@ -29,15 +29,11 @@ useEffect(()=>{
 
   fetch().then((receivedEvents)=>{
     let args = receivedEvents.map(element => element.args.ticketAddress);
-  
       lookForEvent(args).then(()=>{
-      
       });
-       
-
+    
   })
  
-
 
    const lookForEvent = async(arg)=>{
 
@@ -48,15 +44,10 @@ useEffect(()=>{
             eventsMetada.push(m);
             eventStatus.push(st);
             names.push(name);
-
-           
-
         }))
        setFinish(true);
 
 }
-
-
 
    
 },[])
@@ -71,7 +62,6 @@ useEffect(()=>{
 
         events.push({address:m.address, desc:m.metadata[1],  location: m.metadata[2], date: Date(Number(m.metadata[0]))})
         
-    
     })
 
 
@@ -85,8 +75,6 @@ useEffect(()=>{
              )
              events = newEvents;
          
-    
-    
     })
 
     names.forEach((n)=>{

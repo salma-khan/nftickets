@@ -15,6 +15,7 @@ import {
 import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
 import { ContractContextProvider } from './Contract/ContractContext';
+import { IpfsContextProvider } from './IPFSContext/IpfsContext';
 
 
 
@@ -51,6 +52,7 @@ export default function RootLayout({ children }) {
       <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/datepicker.min.js"></script>
         <WagmiConfig config={wagmiConfig}>
           <RainbowKitProvider chains={chains}>
+            <IpfsContextProvider>
             <ContractContextProvider>
     
             <main>
@@ -65,7 +67,7 @@ export default function RootLayout({ children }) {
                 </div>
 
             </main>
-            </ContractContextProvider>
+            </ContractContextProvider></IpfsContextProvider>
           </RainbowKitProvider>
         </WagmiConfig>
         

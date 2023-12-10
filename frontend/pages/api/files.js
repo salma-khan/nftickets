@@ -42,7 +42,7 @@ const saveFile = async (file, fields) => {
     });
     console.log("directory"+dir);
 
-    for (let i = 0; i < quantity; i++) {
+    for (let i = 1; i <= quantity; i++) {
       const met = [
         
         {
@@ -85,13 +85,30 @@ const saveFile = async (file, fields) => {
     // supprimer les dossier temporaire
    
     }
-  const response = await  pinata.pinFromFS(dir, options);
+  const response = await  pinata.pinFromFS('./tmp/', options);
   return response;
   
   } catch (error) {
     throw error;
   }
 };
+
+const getFile = async (hash)=>{
+const resp =  await fetch(`https://gateway.pinata.cloud/ipfs/${hash}/SDD0.json`, {
+        method: "GET",
+        headers: {
+            
+            pinata_api_key: process.env.NEXT_PUBLIC_PINATA_API_KEY,
+            pinata_secret_api_key: process.NEXT_PUBLIC_PINATA_SECRET_API_KEY,
+          },
+        
+       // body: ipfs,
+      //  headers: { 'Content-Type': 'application/json' },
+      });
+ return resp;
+
+}
+
 
 export default async function handler(req, res) {
   if (req.method === "POST") {
@@ -104,9 +121,10 @@ export default async function handler(req, res) {
             return res.status(500).send("Upload Error");
           }
           const response = await saveFile(files.file, fields);
-          const { IpfsHash } = response; 
-  
-          return res.status(200).send(IpfsHash);
+        
+        
+          console.log(response);
+          return res.status(200).send(response);
         } catch (error) {
           console.log(error);
           return res.status(400).send("error")
@@ -116,6 +134,14 @@ export default async function handler(req, res) {
       console.log(e);
       res.status(500).send("Server Error");
     }
-  } 
+  }  else if(req.method === "GET") {
+    const queryParams = req.query;
+    console.log(queryParams);
+    const hashValue = queryParams.hash;
+    const response = await getFile(hashValue);
+    
+    console.log(response.body);
+      
+  }
  
 }

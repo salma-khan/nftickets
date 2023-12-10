@@ -10,7 +10,7 @@ import {
 } from "@wagmi/core";
 
 import { useContractEvent, usePublicClient } from 'wagmi';
-import { parseAbiItem } from 'viem'
+import { parseAbiItem, parseEther } from 'viem'
 
 
 
@@ -52,6 +52,8 @@ return events;
 
 
 const create = async(eventName, date, desc, location,categories ) => {
+  console.log("creation")
+  console.log(categories);
       const { request } = await prepareWriteContract({
             address: factory_address,
             abi: abi,
@@ -118,6 +120,25 @@ const { hash } = await writeContract(request)
 
 }
 
+const buy = async (adr, seat, category, tokenUri, price) => {
+  console.log(price);
+  try{
+  const { request }  = await prepareWriteContract({
+  address: adr,
+  abi: abi_ticket,
+  functionName:  'buy',
+  args: [seat, category, tokenUri],
+  value: parseEther(String(price)),
+});
+
+const { hash } = await writeContract(request)
+  } catch(err){
+    console.log(err);
+  }
+
+
+}
+
 const getCategories= async(adr)=>{
   const ret = await readContract({
     address: adr,
@@ -134,7 +155,7 @@ const getCategories= async(adr)=>{
 
 
 
-const value = { create, lastevents,getMeta, getStatus, startSelling, meta,setMeta, status, setStatus,lastOpenSell, getName, getCategories};
+const value = { create, lastevents,getMeta, getStatus, startSelling, meta,setMeta, status, setStatus,lastOpenSell, getName, getCategories,buy};
 
   return (
     <ContractContext.Provider value={value}>

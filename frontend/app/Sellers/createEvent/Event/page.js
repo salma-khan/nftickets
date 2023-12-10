@@ -1,8 +1,11 @@
 'use client'
 
 import { useContractContext } from "@/app/Contract/ContractContext";
+import { abi, factory_address } from "@/app/Contract/constant";
+import { useIpfContext } from "@/app/IPFSContext/IpfsContext";
 import { useState } from "react";
 import DatePicker from "react-datepicker";
+import { useAccount, usePublicClient } from "wagmi";
 
 
 
@@ -10,6 +13,9 @@ import DatePicker from "react-datepicker";
 export default function Event() {
   
     const factoryContext = useContractContext();
+    const publicClient = usePublicClient();
+    const ipfContext = useIpfContext();
+    const{address} = useAccount();
  
     const [startDate, setStartDate] = useState(new Date());
     const [location, setLocation] = useState("");
@@ -30,6 +36,11 @@ export default function Event() {
         setFile(e.target.files[0])
     }
    
+
+
+
+
+      
     const uploadAndCreateContract = async (e) => {
         try {
           e.preventDefault();
@@ -41,21 +52,41 @@ export default function Event() {
           formData.append("eventName", eventName);
           formData.append("quantity", quanity);
           formData.append("date", startDate);
-       
     
-          const res = await fetch("/api/files", {
+          const res =  await fetch("/api/files", {
             method: "POST",
             body: formData,
+          //  headers: { 'Content-Type': 'application/json' },
           });
-          const ipfsHash = await res.IpfsHash;
-          setCid(ipfsHash);
+
+    
+       
+         const ipfsHash = await res.json();
+     
+         
+         setCid(ipfsHash.IpfsHash);
+   
 
           
           factoryContext.create(eventName,startDate.getTime(),description, location, [[categName,price, quanity, priceThreshold]]);
+          const events = publicClient.watchContractEvent({
+            address: factory_address,
+            abi: abi,
+            eventName: 'EventCreated',
+            onLogs: logs =>{
+             
+                console.log(logs);
+              ipfContext.push(logs[0].args.ticketAddress, ipfsHash.IpfsHash);
+              console.log(cid);
+            
+                
+                
+            }
+          })
 
       
         } catch (e) {
-          console.log(e);
+       
           alert("Trouble uploading file");
         }
       };
@@ -96,7 +127,7 @@ export default function Event() {
                         </div><div className=" mt-5 ml-2 flex flex-row">
                      
                         <input type="text" id="email" className=" w-20 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:
-                    border-blue-500" placeholder="price"  onClick={(e)=>setPrice(e.target.value)} />
+                    border-blue-500" placeholder="price"  onChange={(e)=>setPrice(e.target.value)} />
                     </div><div className="mt-5 flex  flex-row">
 
                                          <input type="text" id="email" className="w-20 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="quantiy"  onChange={(e)=>setQuantity(e.target.value)} />

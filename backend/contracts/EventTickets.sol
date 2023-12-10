@@ -22,9 +22,9 @@ contract EventTickets is
 
     struct Category {
         string category;
-        uint32 price;
+        uint256 price;
         uint32 quantity;
-        uint32 thresholdResalePrice;
+        uint256 thresholdResalePrice;
     }
 
 
@@ -36,7 +36,7 @@ contract EventTickets is
 
     struct TokenForResale {
         bool forSale;
-        uint32 price;
+        uint256 price;
     }
 
 
@@ -112,7 +112,7 @@ contract EventTickets is
     ) public payable requireSaleIsOpen returns (uint256) {
         (Category memory cat, uint8 index) = getCategory(_category);
         require(msg.value >= cat.price * 1 ether, "Not enought money");
-        require(_seat > 0 && _seat < cat.quantity, "Invalid seatNumber");
+        require(_seat > 0 && _seat <= cat.quantity, "Invalid seatNumber");
         require(!mintedSeat[_category][_seat], "Already taken");
 
         mintedSeat[_category][_seat] = true;
@@ -128,7 +128,7 @@ contract EventTickets is
         return tokenId;
     }
 
-    function sell(uint256 tokenId, uint32 price) external requireSaleIsOpen {
+    function sell(uint256 tokenId, uint256 price) external requireSaleIsOpen {
         require(msg.sender == ownerOf(tokenId), "Not owner.");
         require(
             price > 0 &&
