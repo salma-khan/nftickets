@@ -164,9 +164,9 @@
 						"type": "uint32"
 					},
 					{
-						"internalType": "uint32",
+						"internalType": "uint256",
 						"name": "threshold",
-						"type": "uint32"
+						"type": "uint256"
 					}
 				],
 				"internalType": "struct EventFactory.Category[]",
