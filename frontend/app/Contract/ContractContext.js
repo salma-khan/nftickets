@@ -15,12 +15,14 @@ import { parseAbiItem } from 'viem'
 
 
 
+
 const ContractContext = createContext();
 
 export const ContractContextProvider = ({ children }) => {
   const publicClient = usePublicClient();
   const [meta, setMeta] = useState([]);
   const [status, setStatus ] = useState([]);
+ 
   
 
 
@@ -38,6 +40,15 @@ export const ContractContextProvider = ({ children }) => {
   return events;
 }
 
+const lastOpenSell = async() =>{ 
+  
+  const events = await publicClient.getLogs({
+  event: parseAbiItem('event SellingStarted(address indexed eventAddress)'),
+  fromBlock: 0n,
+  toBlock: 'latest',
+})
+return events;
+}
 
 
 const create = async(eventName, date, desc, location,categories ) => {
@@ -50,14 +61,19 @@ const create = async(eventName, date, desc, location,categories ) => {
         const { hash } = await writeContract(request)
 }
 
+
+
+
 const getMeta = async (contractAddress) => {
     const ret = await readContract({
     address: contractAddress,
     abi: abi_ticket,
     functionName:  'eventMeta',
   });
-  setMeta([...meta, 
-    { metadata:ret, address: contractAddress}]);
+
+ 
+ return    { metadata:ret, address: contractAddress};
+ 
  
 }
 
@@ -67,16 +83,46 @@ const getStatus = async (contractAddress) => {
   abi: abi_ticket,
   functionName:  'eventStatus',
 });
-setStatus([...status, 
-  {st:ret, address: contractAddress}]);
+
+return    { status:ret, address: contractAddress};
+
+  
 
 }
 
+const startSelling = async (adr) => {
+  try{
+  const { request }  = await prepareWriteContract({
+  address: adr,
+  abi: abi_ticket,
+  functionName:  'startSell',
+});
+
+const { hash } = await writeContract(request)
+  } catch(err){
+    console.log(err);
+  }
+
+
+}
+
+/*const getCategories= async(adr)=>{
+  const ret = await readContract({
+    address: adr,
+    abi: abi_ticket,
+    functionName:  'getCategories',
+  });
+
+  setCategories((ca)=>[...ca,{a:adr,  c: ret}])
+
+
+}*/
 
 
 
 
-const value = { create, lastevents,getMeta, getStatus, meta, status};
+
+const value = { create, lastevents,getMeta, getStatus, startSelling, meta,setMeta, status, setStatus,lastOpenSell};
 
   return (
     <ContractContext.Provider value={value}>

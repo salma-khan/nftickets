@@ -11,130 +11,112 @@ export default function MyEvent(){
 
 const contractFactoryContext = useContractContext();
 const {address} = useAccount();
-const [finish, setFinish] = useState(false );
-const [events, setEvents] = useState([]);
+const [finish, setFinish]= useState(false);
+
+
 const [eventRender, setEventRender] = useState([]);
+const [eventsMetada, setEventMetada] = useState([]);
+const [eventStatus, setEventStatus] = useState([]);
+
+ 
+ 
 
 
 
 
 
 useEffect(()=>{
-    console.log("start");
-   const receivedEvents =  contractFactoryContext.lastevents(address);
-   
-   receivedEvents.then(function(result){
-   let args = result.map(element => element.args.ticketAddress);
-    let tempEvent = [];
 
-    args.forEach(address => {
-       
+
+  const fetch = async()=>{
+    return  await contractFactoryContext.lastevents(address);
+  }
+
+  fetch().then((receivedEvents)=>{
+    let args = receivedEvents.map(element => element.args.ticketAddress);
+  
+      lookForEvent(args).then(()=>{
       
-        const event = {
-            adr : address,
-            date: "",
-            desc : "",
-            location:"",
-            status:""
-        
+      });
+       
 
-        }
-       tempEvent.push(event); 
-    
-     
-     
-    });
+  })
+ 
 
-    setEvents(tempEvent)
-    tempEvent= [];
 
-    
+   const lookForEvent = async(arg)=>{
 
-   
-   });
-   
-   console.log(events);
-   console.log("finish")
+        await Promise.all(arg.map(async(e)=>{
+            const m = await  contractFactoryContext.getMeta(e);
+            const st = await contractFactoryContext.getStatus(e);
+            eventsMetada.push(m);
+          
+            eventStatus.push(st);
+
+           
+
+        }))
+       setFinish(true);
+
+}
+
+
 
    
 },[])
 
 useEffect(()=>{
-    if(events.length>0){
-    events.forEach((e)=>{
-        
-        contractFactoryContext.getMeta(e.adr);
-        contractFactoryContext.getStatus(e.adr);
-
-    })
-    console.log("finish fetching meta")
-}
-
-},[events]);
-
-useEffect(()=>{
-
-    if(events.length>0){
-    console.log("fSomthing changed")
-    
-    let metas = contractFactoryContext.meta;
-    console.log("meta"+metas);
-
-    metas.forEach((m)=>{
-        let ele = events.find((e)=>m.address===e.adr);
-        let index =events.indexOf(ele);
-        if(ele!=undefined){
-        ele.date = m.metadata[0];
-        ele.desc = m.metadata[1]
-        ele.location = m.metadata[2]
-        eventRender.splice(index, 1, ele);
-       
-        }
-        
-    })
-
-
-}
-
-setEventRender(eventRender);
-
-
-},[contractFactoryContext.meta]);
-
-
-useEffect(()=>{
-    console.log("fSomthing changed")
-    
-    let status = contractFactoryContext.status;
+ if(finish){
    
 
-    status.forEach((m)=>{
-        let ele = events.find((e)=>m.address===e.adr);
-        let index = events.indexOf(ele);
-        if(ele!=undefined){
-         if(m.st ===0 ){
-            ele.status = "Event not started";
-         } else if(m.st ===1){
-            ele.status = "Selling started";
-         }
+   let events =[];
+
+    eventsMetada.forEach((m)=>{
+
+        events.push({address:m.address, desc:m.metadata[1],  location: m.metadata[2], date:m.metadata[0]})
+        
     
-         eventRender.splice(index, 1,  ele);
-        
-       
-        }
-        
-    }
-)
+    })
+
+    console.log(eventStatus);
+    eventStatus.forEach((m)=>{
+             let newEvents = events.map(el => {       
+                if(el.address===m.address){
+               
+                   return  {...el, status: m.status}
+                }
+                return el;}
+             )
+             events = newEvents;
+         
+    
+    
+    })
+
+
+    setEventRender(events);
+
+ }
+
+
+}, [finish])
 
 
 
 
-},[contractFactoryContext.status]);
 
 
 
 
 
+
+function startSell(adr) {
+    contractFactoryContext.startSelling(adr).then(function(){
+        console.log("called then")
+        contractFactoryContext.getStatus(adr);
+    });
+   
+}
 
 
 return(<><div className="p-4">
@@ -145,7 +127,12 @@ return(<><div className="p-4">
             <p className="text-white-600">Date : {event.date?event.date:"" }</p>
             <p className="text-white-600">Description : {event.desc? event.desc :""}</p>
             <p className="text-white-600">Lieu : {event.location? event.location :""}</p>
-            <p className="text-white-600">Statut : {event.status ? event.status :""}</p>
+            <p className="text-white-600">Statut : {event.status ? event.status :""
+            }
+            </p>
+            <button key={event.adr} class="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded " onClick={(e)=>startSell(event.adr)}>
+                startSelling
+</button>
             
         </li>
     ))}
