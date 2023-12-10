@@ -67,7 +67,7 @@ export default function Buyer() {
       
           eventsMetada.forEach((m)=>{
       
-              events.push({address:m.address, desc:m.metadata[1],  location: m.metadata[2], date:m.metadata[0]})
+              events.push({address:m.address, desc:m.metadata[1],  location: m.metadata[2], date:Date(Number(m.metadata[0]))})
               
           
           })
