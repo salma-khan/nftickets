@@ -10,7 +10,7 @@ import {
 } from '@rainbow-me/rainbowkit';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
 import {
-  arbitrum, hardhat
+  arbitrumSepolia, hardhat
 } from 'wagmi/chains';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
@@ -21,7 +21,7 @@ import { ContractContextProvider } from './Contract/ContractContext';
 
 
 const { chains, publicClient } = configureChains(
-  [arbitrum, hardhat],
+  [arbitrumSepolia, hardhat],
   [
     alchemyProvider({ apiKey: process.env.ALCHEMY_ID }),
     publicProvider()
@@ -35,7 +35,7 @@ const { connectors } = getDefaultWallets({
 });
 
 const wagmiConfig = createConfig({
-  autoConnect: true,
+  autoConnect: false,
   connectors,
   publicClient,
   persister: null

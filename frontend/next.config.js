@@ -1,10 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    experimental: {
-        ppr: true,
-    },
-    reactStrictMode: false,
-
+ 
+    reactStrictMode: true,
+    webpack: (config) => {
+        config.externals.push('pino-pretty', 'lokijs', 'encoding')
+        return config;
+      },
 
 
     
