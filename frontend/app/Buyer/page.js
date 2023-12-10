@@ -16,7 +16,9 @@ export default function Buyer() {
     const [eventRender, setEventRender] = useState([]);
     const [eventsMetada, setEventMetada] = useState([]);
     const [eventStatus, setEventStatus] = useState([]);
+    const[categories, setCategories] = useState([]);
     const[names, setNames] = useState([]);
+    
     const [finish, setFinish]= useState(false);
 
 
@@ -40,11 +42,12 @@ export default function Buyer() {
                   const m = await  contractFactoryContext.getMeta(e);
                   const st = await contractFactoryContext.getStatus(e);
                   const name = await contractFactoryContext.getName(e);
+                  const cat = await contractFactoryContext.getCategories(e);
                   eventsMetada.push(m);
                   eventStatus.push(st);
                   names.push(name);
+                  categories.push(cat);
       
-                 
       
               }))
              setFinish(true);
@@ -95,7 +98,20 @@ export default function Buyer() {
              events = newEvents;
 
           })
-      
+
+
+          categories.forEach((c)=>{
+            let newEvents = events.map(el => {       
+                if(el.address===c.address){
+               
+                   return  {...el, categ: c.categories}
+                }
+                return el;}
+             )
+             events = newEvents;
+
+          })
+         console.log(events);
       
           setEventRender(events);
       
@@ -120,14 +136,14 @@ export default function Buyer() {
                     <p className="text-white-600">Lieu : {event.location ? event.location : ""}</p>
                     <ul className="text-white-600">
                     
-                     {event.categories ? (event.categories.map((c,index)=>(
+                     {event.categ? (event.categ.map((c,index)=>(
                         <div>
                         <li>
                          <p className="text-white-600">Categorie  : {c.category ? c.category : ""}</p>
                          </li>
 
                          <li>
-                         <p className="text-white-600">Prix en wei  : {c.price ? c.price : ""}</p>
+                         <p className="text-white-600">Prix en ether  : {c.price ? c.price : ""}</p>
                          </li>
                          </div>
 

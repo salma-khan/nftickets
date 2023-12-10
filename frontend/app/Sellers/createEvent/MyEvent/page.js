@@ -119,10 +119,7 @@ useEffect(()=>{
 
 
 function startSell(adr) {
-    contractFactoryContext.startSelling(adr).then(function(){
-        console.log("called then")
-        contractFactoryContext.getStatus(adr);
-    });
+    contractFactoryContext.startSelling(adr);
    
 }
 
@@ -139,7 +136,7 @@ return(<><div className="p-4">
             <p className="text-white-600">Statut : {event.status ? event.status :""
             }
             </p>
-            <button key={event.adr} class="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded " onClick={(e)=>startSell(event.adr)}>
+            <button key={event.adr} class="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded " onClick={(e)=>startSell(event.address)}>
                 startSelling
 </button>
             

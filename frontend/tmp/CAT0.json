@@ -1,0 +1,23 @@
+{
+  "description": "DESC",
+  "image": "https://gateway.pinata.cloud/ipfs/QmTW8ik3SCq33AH812hrkHCuUdMRZRwoAGWRi4S6qM8ADM",
+  "name": "EV2",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "CAT"
+    },
+    {
+      "trait_type": "Place",
+      "value": "1"
+    },
+    {
+      "trait_type": "Date",
+      "value": "Sun Dec 10 2023 13:02:42 GMT+0100 (heure normale d’Europe centrale)"
+    },
+    {
+      "trait_type": "Localisation",
+      "value": "PAR"
+    }
+  ]
+}

@@ -16,7 +16,7 @@ export default function Event() {
     const [eventName, setEventName]= useState("");
     const[description, setDescription] = useState();
     const[categName, setCategName]= useState();
-    const[price, setPrice] = useState(0);
+    const[price, setPrice] = useState();
     const[priceThreshold, setPriceThreshold] = useState();
     const [file, setFile] = useState("");
     const [cid, setCid] = useState("");

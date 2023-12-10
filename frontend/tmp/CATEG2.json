@@ -1,0 +1,23 @@
+{
+  "description": "DESCRIPTION",
+  "image": "https://gateway.pinata.cloud/ipfs/QmTW8ik3SCq33AH812hrkHCuUdMRZRwoAGWRi4S6qM8ADM",
+  "name": "EVENEMENT",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "CATEG"
+    },
+    {
+      "trait_type": "Place",
+      "value": "3"
+    },
+    {
+      "trait_type": "Date",
+      "value": "Sun Dec 10 2023 12:54:48 GMT+0100 (heure normale d’Europe centrale)"
+    },
+    {
+      "trait_type": "Localisation",
+      "value": "PARIS"
+    }
+  ]
+}

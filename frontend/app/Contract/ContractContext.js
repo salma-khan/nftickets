@@ -118,23 +118,23 @@ const { hash } = await writeContract(request)
 
 }
 
-/*const getCategories= async(adr)=>{
+const getCategories= async(adr)=>{
   const ret = await readContract({
     address: adr,
     abi: abi_ticket,
     functionName:  'getCategories',
   });
 
-  setCategories((ca)=>[...ca,{a:adr,  c: ret}])
+  return    { categories:ret, address: adr};
 
 
-}*/
+}
 
 
 
 
 
-const value = { create, lastevents,getMeta, getStatus, startSelling, meta,setMeta, status, setStatus,lastOpenSell, getName};
+const value = { create, lastevents,getMeta, getStatus, startSelling, meta,setMeta, status, setStatus,lastOpenSell, getName, getCategories};
 
   return (
     <ContractContext.Provider value={value}>
